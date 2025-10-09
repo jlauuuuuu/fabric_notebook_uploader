@@ -1,0 +1,5 @@
+azure-identity 
+requests
+msfabricpysdkcore
+
+ms-fabric-cli
