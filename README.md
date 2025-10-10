@@ -1,14 +1,18 @@
 # Fabric Notebook Uploader
 
-A comprehensive Python toolkit for managing Jupyter notebooks and data agents in Microsoft Fabric. Features centralized configuration management, automated lifecycle tracking, and local testing capabilities.
+A comprehensive Python toolkit for creating, compiling, uploading, and running data agent notebooks in Microsoft Fabric. Features template-based scaffolding, automated notebook management, and complete workflow automation.
 
 ## 🚀 Features
 
-- **🔧 Configuration Management**: Centralized workspace and data agent lifecycle tracking
-- **📓 Notebook Conversion**: Convert `.ipynb` files to Fabric Python format
+- **� Template-Based Scaffolding**: Create data agent notebooks from templates with embedded configuration
+- **🔄 Complete Workflow Pipeline**: Create → Compile → Upload → Run automation
+- **� Notebook Conversion**: Convert `.ipynb` files to Fabric Python format
 - **☁️ Fabric Integration**: Direct upload and execution in Fabric workspaces
-- **🧪 Local Testing**: Test data agents locally before deployment
-- **📊 Lifecycle Tracking**: 5-stage progression from notebook to deployed agent
+- **📊 Execution Monitoring**: Real-time job status tracking with detailed reporting
+- **🖥️ Remote Execution**: Run Fabric notebooks from your local machine with full monitoring
+- **🔧 Configuration Management**: Centralized workspace and agent lifecycle tracking
+- **🔄 Smart Update Mode**: Update existing notebooks to avoid name availability timing issues
+- **⚡ Immediate Execution**: No waiting periods after updates - run notebooks right away
 
 ## 📋 Prerequisites
 
@@ -16,47 +20,104 @@ A comprehensive Python toolkit for managing Jupyter notebooks and data agents in
 - Microsoft Fabric workspace access
 - Azure Active Directory authentication
 
-## ⚡ Quick Start
+## ⚡ Complete Workflow
 
-### 1. Installation
+### 1. Create Data Agent
 ```bash
-git clone <repository-url>
-cd fabric_notebook_uploader
-pip install -r requirements.txt
+python create_data_agent.py <agent_name>
+```
+Creates a new data agent folder with notebook from template.
+
+### 2. Compile to Fabric Format  
+```bash
+python compile_script.py <agent_name>
+```
+Converts the notebook to Fabric Python format.
+
+### 3. Upload to Fabric Workspace
+```bash
+python upload_agent.py <agent_name>
+```
+Uploads the compiled Python file as a notebook to Fabric.
+
+### 4. Run in Fabric (Creates Data Agent)
+```bash
+python run_fabric_notebook.py <agent_name>
+```
+Executes the notebook remotely in Fabric from your local machine to create the data agent.
+
+### 🔄 **Update Workflow (Avoids Timing Issues)**
+For existing agents, use the update mode to avoid name availability delays:
+
+```bash
+# Recompile after changes
+python compile_script.py <agent_name>
+
+# Update existing notebook (no timing conflicts!)
+python upload_agent.py <agent_name> --update
+
+# Run immediately (no waiting!)
+python run_fabric_notebook.py <agent_name>
 ```
 
-### 2. Initial Setup
+## 🔥 Quick Workflow Example
 ```bash
-python setup_config.py
-```
-Follow the interactive prompts to configure your workspace and first data agent.
+# Create a new data agent named "sales_bot"
+python create_data_agent.py sales_bot
 
-### 3. Basic Usage
-```bash
-# 1. Upload notebook to Fabric
-python main.py [data_agent_name]
+# Compile the notebook to Fabric format
+python compile_script.py sales_bot
 
-# 2. Run notebook in Fabric (creates data agent)
-python test_run.py [data_agent_name]  
+# Upload to Fabric workspace (creates new notebook)
+python upload_agent.py sales_bot
 
-# 3. Get published URL from Fabric and update config
-# 4. Test data agent locally
-python example.py [data_agent_name]
-```
+# Run in Fabric to create the data agent
+python run_fabric_notebook.py sales_bot
 
-### 🔥 Quick Workflow Summary
-```bash
-# One-time setup
-python setup_config.py
-
-# For each data agent:
-python main.py my_agent        # Upload to Fabric  
-python test_run.py my_agent    # Run in Fabric (creates agent)
-# → Get URL from Fabric → Update config
-python test_agent.py my_agent  # Test locally (optional)
+# ✨ FOR UPDATES (No timing issues!):
+python compile_script.py sales_bot    # Recompile changes
+python upload_agent.py sales_bot --update    # Update existing notebook
+python run_fabric_notebook.py sales_bot      # Run immediately
 ```
 
-## 🔄 Complete Workflow
+## � Notebook Compilation
+
+### Option A: Static Compilation (embeds all data in notebook)
+```bash
+python compile_data_agent.py jeff
+```
+Creates `jeff/jeff_compiled.ipynb` with all configuration embedded.
+
+### Option B: Dynamic Loading (recommended - loads files at runtime)
+```bash
+python compile_data_agent_v2.py jeff
+```
+Creates `jeff/jeff_dynamic.ipynb` that loads configuration files at runtime.
+
+**Advantages of Dynamic Loading:**
+- 📝 Edit instructions without recompiling
+- 🔧 Update configuration without code changes  
+- 📊 Modify examples and schema info easily
+- 🔄 Version control friendly - separate data from code
+- ✨ Edit files directly in Fabric workspace
+
+**Usage with Dynamic Loading:**
+1. Upload both the notebook AND the agent folder to Fabric
+2. Edit text files directly in the Fabric workspace
+3. Re-run cells to apply changes - no recompilation needed!
+
+### Compilation Method Comparison
+
+| Feature | Static Compilation | Dynamic Loading |
+|---------|-------------------|-----------------|
+| **File Size** | Larger (embedded data) | Smaller (references files) |
+| **Setup** | Upload notebook only | Upload notebook + folder |
+| **Editing** | Recompile required | Direct file editing |
+| **Version Control** | Mixed code+data | Clean separation |
+| **Flexibility** | Fixed at compile time | Runtime flexibility |
+| **Best For** | Simple, one-time agents | Iterative development |
+
+## �🔄 Complete Workflow
 
 ### Step 1: Initial Configuration
 ```bash
@@ -204,7 +265,8 @@ python example.py [agent_name]
 ├── 📄 main.py                 # Convert .ipynb → Fabric format & upload to workspace
 ├── 📄 test_run.py             # Execute notebook in Fabric (creates data agent)
 ├── 📄 config.py               # Global configuration management system
-└── 📄 setup_config.py         # One-time interactive configuration setup
+├── 📄 setup_config.py         # One-time interactive configuration setup
+└── 📄 create_data_agent.py    # Data agent scaffolding tool (creates folder structure)
 ```
 
 ### 🛠️ Helper Scripts (Optional)
@@ -236,11 +298,12 @@ python example.py [agent_name]
 
 | File | Purpose | When to Use | Required |
 |------|---------|-------------|----------|
-| `main.py` | Converts notebooks and uploads to Fabric | Step 2 of workflow | ✅ Yes |
-| `test_run.py` | Runs notebooks in Fabric (creates data agents) | Step 3 of workflow | ✅ Yes |
-| `config.py` | Manages all configurations and data agent lifecycle | Used by all scripts | ✅ Yes |
 | `setup_config.py` | Interactive setup for first-time configuration | Step 1 of workflow | ✅ Yes |
-| `test_agent.py` | Tests deployed data agents locally | Step 6 of workflow | ❌ Optional |
+| `create_data_agent.py` | Creates data agent folder structure and config files | Step 2 of workflow | ✅ Yes |
+| `main.py` | Converts notebooks and uploads to Fabric | Step 3 of workflow | ✅ Yes |
+| `test_run.py` | Runs notebooks in Fabric (creates data agents) | Step 4 of workflow | ✅ Yes |
+| `config.py` | Manages all configurations and data agent lifecycle | Used by all scripts | ✅ Yes |
+| `test_agent.py` | Tests deployed data agents locally | Step 7 of workflow | ❌ Optional |
 | `check_config.py` | Shows current configuration status | Troubleshooting | ❌ Optional |
 
 ### 🎯 Essential vs Optional
