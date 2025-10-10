@@ -18,12 +18,11 @@ Professional CLI toolkit for creating, managing, and deploying data agent notebo
 - Azure CLI installed and configured (`az login`)
 - Microsoft Fabric workspace access
 
-### Option 1: Clean Install (Recommended)
+### Option 1: Clean Install
 ```bash
 # Create isolated environment
-python -m venv dad-fw-env
-dad-fw-env\Scripts\activate  # Windows
-source dad-fw-env/bin/activate  # macOS/Linux
+python -m venv .venv
+.venv\Scripts\activate  # Windows
 
 # Install from GitHub
 pip install git+https://github.com/jlauuuuuu/fabric_notebook_uploader.git
