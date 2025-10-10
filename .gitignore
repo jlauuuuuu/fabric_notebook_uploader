@@ -1,5 +1,7 @@
 # Python
 .venv/
+venv/
+env/
 __pycache__/
 *.pyc
 *.pyo
@@ -7,6 +9,11 @@ __pycache__/
 .Python
 *.so
 .pytest_cache/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
 
 # Configuration and data
 config.json
@@ -16,7 +23,7 @@ config.json
 # Output and results
 output/
 test_results/
-*.json
+*/config.json
 
 # IDE
 .vscode/
@@ -27,3 +34,10 @@ test_results/
 # OS
 .DS_Store
 Thumbs.db
+
+# User agent folders (ignore all created agents)
+*/
+!dad_fw/
+!fabric_notebook_uploader/
+!notebooks/
+!debugging/

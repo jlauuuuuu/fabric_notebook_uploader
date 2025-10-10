@@ -19,12 +19,7 @@ from pathlib import Path
 current_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(current_dir))
 
-try:
-    from create_nb import create_notebook_from_fabric_python
-except ImportError:
-    # Fallback to parent directory
-    sys.path.insert(0, str(current_dir.parent / "fabric_notebook_uploader"))
-    from create_nb import create_notebook_from_fabric_python
+from ..create_nb import create_notebook_from_fabric_python
 
 app = typer.Typer()
 console = Console()

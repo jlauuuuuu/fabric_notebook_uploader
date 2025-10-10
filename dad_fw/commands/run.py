@@ -17,7 +17,7 @@ from datetime import datetime
 current_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(current_dir))
 
-from run_nb import run_notebook_by_name, run_notebook_by_id
+from ..run_nb import run_notebook_by_name, run_notebook_by_id
 
 app = typer.Typer()
 console = Console()

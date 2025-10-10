@@ -16,7 +16,7 @@ from pathlib import Path
 current_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(current_dir))
 
-from convert_nb import convert_ipynb_to_fabric_python
+from ..convert_nb import convert_ipynb_to_fabric_python
 
 app = typer.Typer()
 console = Console()
