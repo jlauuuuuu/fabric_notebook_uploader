@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dad-fw"
+version = "1.0.0"
+description = "Data Agent Development Framework - A comprehensive toolkit for creating, managing, and deploying Fabric data agents"
+readme = "README.md"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "typer[all]>=0.9.0",
+    "rich>=13.0.0",
+    "requests>=2.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+    "mypy>=0.950",
+]
+
+[project.urls]
+Homepage = "https://github.com/jlauuuuuu/fabric_notebook_uploader"
+Repository = "https://github.com/jlauuuuuu/fabric_notebook_uploader"
+Documentation = "https://github.com/jlauuuuuu/fabric_notebook_uploader#readme"
+Issues = "https://github.com/jlauuuuuu/fabric_notebook_uploader/issues"
+
+[project.scripts]
+dad-fw = "dad_fw.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dad_fw*"]
+exclude = ["tests*", "docs*"]
+
+[tool.setuptools.package-data]
+dad_fw = ["templates/**/*", "*.json"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
