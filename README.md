@@ -127,39 +127,3 @@ my-agent/
 ├── my-agent.ipynb           # Main data agent notebook
 └── testing.ipynb           # Testing framework
 ```
-
-## License
-
-This project is licensed under the MIT License - see below for details.
-
-### What is the MIT License?
-
-The **MIT License** is one of the most permissive and popular open-source licenses. Here's what it means:
-
-#### ✅ **What you CAN do:**
-- **Use** the software for any purpose (personal, commercial, etc.)
-- **Copy** and distribute the software freely
-- **Modify** the source code as needed
-- **Merge** it with other projects
-- **Publish** your own versions
-- **Sell** software that includes this code
-
-#### ⚠️ **What you MUST do:**
-- **Include the original license** in any copy/distribution
-- **Include the copyright notice** when redistributing
-
-#### ❌ **What we DON'T provide:**
-- **No warranty** - software is provided "as is"
-- **No liability** - we're not responsible for any issues
-- **No support guarantee** - though we try to help
-
-#### 📝 **In simple terms:**
-"Feel free to use this however you want, just don't blame us if something goes wrong, and give us credit."
-
-This means you can:
-- Use DAD-FW in your company's internal projects
-- Build commercial products that include DAD-FW
-- Modify it to fit your specific needs
-- Share it with others
-
-It's business-friendly and encourages widespread adoption and contribution.
