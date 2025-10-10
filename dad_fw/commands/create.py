@@ -63,14 +63,14 @@ def agent(
     agent_folder = Path(folder_name)
     
     if agent_folder.exists() and not force:
-        rprint(f"[red]❌ Folder '{folder_name}' already exists[/red]")
+        rprint(f"[red]ERROR: Folder '{folder_name}' already exists[/red]")
         if not typer.confirm("Overwrite existing folder?"):
-            rprint("❌ Cancelled")
+            rprint("Cancelled")
             raise typer.Exit(1)
     
     # Create the folder
     agent_folder.mkdir(exist_ok=True)
-    rprint(f"[green]📁 Created folder: {agent_folder}[/green]")
+    rprint(f"[green]Created folder: {agent_folder}[/green]")
     
     # Create config.json with same structure as existing config system
     notebook_filename = f"{folder_name}.ipynb"
@@ -160,9 +160,9 @@ After your agent is deployed:
     notebook_file = agent_folder / f"{folder_name}.ipynb"
     try:
         create_data_agent_notebook(name, folder_name, notebook_file)
-        rprint(f"[green]📓 Created data agent notebook: {notebook_file}[/green]")
+        rprint(f"[green]Created data agent notebook: {notebook_file}[/green]")
     except Exception as e:
-        rprint(f"[yellow]⚠️ Could not create data agent notebook: {e}[/yellow]")
+        rprint(f"[yellow]Could not create data agent notebook: {e}[/yellow]")
     
     # Copy testing notebook template
     try:
@@ -172,20 +172,20 @@ After your agent is deployed:
         if testing_template.exists():
             testing_notebook = agent_folder / f"{folder_name}_testing.ipynb"
             shutil.copy2(testing_template, testing_notebook)
-            rprint(f"[green]📓 Created testing notebook: {testing_notebook}[/green]")
+            rprint(f"[green]Created testing notebook: {testing_notebook}[/green]")
         else:
-            rprint(f"[yellow]⚠️ Testing template not found: {testing_template}[/yellow]")
+            rprint(f"[yellow]Testing template not found: {testing_template}[/yellow]")
             
     except Exception as e:
-        rprint(f"[yellow]⚠️ Could not create testing notebook: {e}[/yellow]")
+        rprint(f"[yellow]Could not create testing notebook: {e}[/yellow]")
     
-    rprint(f"\n[green]✅ Data agent scaffold created successfully![/green]")
-    rprint(f"[dim]� Location: {agent_folder}[/dim]")
-    rprint(f"\n[cyan]📋 Files created:[/cyan]")
-    rprint(f"   📄 config.json - Basic configuration reference")
-    rprint(f"   📓 {folder_name}.ipynb - Complete notebook with embedded config")
-    rprint(f"   📓 {folder_name}_testing.ipynb - Testing notebook for deployed agent")
-    rprint(f"   📋 README.md - Documentation")
+    rprint(f"\n[green]Data agent scaffold created successfully![/green]")
+    rprint(f"[dim]Location: {agent_folder}[/dim]")
+    rprint(f"\n[cyan]Files created:[/cyan]")
+    rprint(f"   config.json - Basic configuration reference")
+    rprint(f"   {folder_name}.ipynb - Complete notebook with embedded config")
+    rprint(f"   {folder_name}_testing.ipynb - Testing notebook for deployed agent")
+    rprint(f"   README.md - Documentation")
     rprint(f"\n[bold]Next steps:[/bold]")
     rprint(f"1. Open {folder_name}.ipynb and update the configuration cells")
     rprint(f"2. Customize lakehouse_name, table_names, instructions, and examples")
@@ -206,7 +206,7 @@ def template(
     template_dir = Path("templates") / name
     
     if template_dir.exists():
-        rprint(f"[red]❌ Template '{name}' already exists[/red]")
+        rprint(f"[red]Template '{name}' already exists[/red]")
         raise typer.Exit(1)
     
     try:
@@ -225,10 +225,10 @@ def template(
             (template_dir / f"{name}_fabric.py").write_text(f"# {name} Data Agent Template\n\n# Add your agent code here\n")
             rprint(f"[green]✅ Basic template structure created[/green]")
         
-        rprint(f"[dim]📁 Location: ./templates/{name}/[/dim]")
+        rprint(f"[dim]Location: ./templates/{name}/[/dim]")
         
     except Exception as e:
-        rprint(f"[red]❌ Error creating template: {e}[/red]")
+        rprint(f"[red]Error creating template: {e}[/red]")
         raise typer.Exit(1)
 
 
@@ -240,13 +240,13 @@ def list_templates():
     
     templates_dir = Path("templates")
     if not templates_dir.exists():
-        rprint("[yellow]⚠️ No templates directory found[/yellow]")
+        rprint("[yellow]No templates directory found[/yellow]")
         return
     
     templates = [d for d in templates_dir.iterdir() if d.is_dir()]
     
     if not templates:
-        rprint("[yellow]⚠️ No templates found[/yellow]")
+        rprint("[yellow]No templates found[/yellow]")
         return
     
     for template in templates:

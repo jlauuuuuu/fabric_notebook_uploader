@@ -85,6 +85,19 @@ dad-fw run my-agent
    dad-fw run sales-analysis
    ```
 
+5. **Test your data agent** (in Python/Jupyter):
+   ```python
+   from dad_fw import FabricDataAgentClient
+   
+   client = FabricDataAgentClient(
+       tenant_id="your-tenant-id",
+       data_agent_url="your-data-agent-url"
+   )
+   
+   response = client.ask("What data is available?")
+   print(response)
+   ```
+
 ## Commands
 
 | Command | Description | Example |
