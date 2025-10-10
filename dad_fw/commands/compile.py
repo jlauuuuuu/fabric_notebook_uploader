@@ -3,6 +3,7 @@
 Compile command - Compile data agents to Fabric format
 """
 
+import subprocess
 import typer
 from rich.console import Console
 from rich import print as rprint
@@ -162,7 +163,7 @@ def compile_all(
                 agents.append(item)
     
     if not agents:
-        rprint("[yellow]⚠️ No data agents found to compile[/yellow]")
+        rprint("[yellow]No data agents found to compile[/yellow]")
         return
     
     rprint(f"[cyan]Found {len(agents)} agents to compile[/cyan]")
