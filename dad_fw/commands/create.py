@@ -37,7 +37,7 @@ def create_data_agent_notebook(agent_name, folder_name, notebook_path):
     
     # Replace specific values in the template for customization
     # Replace the generic data agent name with the specific one  
-    customized_content = template_content.replace('test_data_agent1234', agent_name)
+    customized_content = template_content.replace('data-agent-name', agent_name)
     
     # Write the customized notebook
     with open(notebook_path, 'w', encoding='utf-8') as f:
