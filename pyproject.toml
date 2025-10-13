@@ -26,13 +26,14 @@ dependencies = [
     "typer>=0.19.0",
     "rich>=14.0.0",
     "requests>=2.32.0",
-    "azure-identity", 
+    "azure-identity>=1.15.0", 
     "requests",
     "msfabricpysdkcore",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
     "nbformat>=5.0.0",
-    "ms-fabric-cli"
+    "ms-fabric-cli",
+    "azure-cli"
 ]
 
 [project.optional-dependencies]
