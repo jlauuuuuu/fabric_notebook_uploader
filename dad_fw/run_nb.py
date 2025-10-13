@@ -82,16 +82,16 @@ def run_notebook_by_name(workspace_id, notebook_name):
     }
     
     if job_instance.status == "Completed":
-        print(f"✅ Notebook execution completed successfully!")
-        print(f"⏱️ Total runtime: {total_runtime_str}")
+        print(f"Notebook execution completed successfully!")
+        print(f"Total runtime: {total_runtime_str}")
     elif job_instance.status == "Failed":
-        print(f"❌ Notebook execution failed!")
-        print(f"⏱️ Runtime before failure: {total_runtime_str}")
+        print(f"Notebook execution failed!")
+        print(f"Runtime before failure: {total_runtime_str}")
         print(job_instance)
     else:
-        print(f"⚠️ Notebook execution ended with status: {job_instance.status}")
-        print(f"⏱️ Total runtime: {total_runtime_str}")
-    
+        print(f"Notebook execution ended with status: {job_instance.status}")
+        print(f"Total runtime: {total_runtime_str}")
+
     return result
 
 def run_notebook_by_id(workspace_id, notebook_id):
@@ -154,14 +154,14 @@ def run_notebook_by_id(workspace_id, notebook_id):
     }
     
     if job_instance.status == "Completed":
-        print(f"✅ Notebook execution completed successfully!")
-        print(f"⏱️ Total runtime: {total_runtime_str}")
+        print(f"Notebook execution completed successfully!")
+        print(f"Total runtime: {total_runtime_str}")
     elif job_instance.status == "Failed":
-        print(f"❌ Notebook execution failed!")
-        print(f"⏱️ Runtime before failure: {total_runtime_str}")
+        print(f"Notebook execution failed!")
+        print(f"Runtime before failure: {total_runtime_str}")
     else:
-        print(f"⚠️ Notebook execution ended with status: {job_instance.status}")
-        print(f"⏱️ Total runtime: {total_runtime_str}")
+        print(f"Notebook execution ended with status: {job_instance.status}")
+        print(f"Total runtime: {total_runtime_str}")
     
     return result
 

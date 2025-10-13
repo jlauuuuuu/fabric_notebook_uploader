@@ -1,0 +1,16 @@
+task_id,project_id,task_name,assigned_to,start_date,end_date,status
+1001,1,Site Inspection,205,2024-01-20,2024-02-15,Completed
+1002,1,Load Simulation,205,2024-02-20,2024-04-10,Completed
+1003,2,Wind Data Analysis,209,2024-03-05,2024-05-15,Completed
+1004,2,Site Visit,205,2024-05-20,2024-06-30,In Progress
+1005,3,Coastal Survey,210,2024-04-15,2024-06-01,Completed
+1006,3,Erosion Model Simulation,210,2024-06-05,2024-08-20,In Progress
+1007,4,Network Simulation,207,2024-06-15,2024-09-15,In Progress
+1008,5,Environmental Impact Study,206,2024-03-01,2024-07-01,Completed
+1009,5,Route Optimization,208,2024-07-05,2024-10-10,In Progress
+1010,6,Pavement Survey,205,2024-07-15,2024-08-30,Completed
+1011,6,Bridge Modelling,205,2024-09-01,2024-10-31,In Progress
+1012,7,Panel Efficiency Review,209,2024-05-20,2024-07-15,Completed
+1013,8,Hydraulic Testing,207,2024-04-20,2024-07-20,In Progress
+1014,9,Building Assessment,206,2024-04-05,2024-07-10,Completed
+1015,10,Harbour Scan,210,2024-01-15,2024-03-01,Completed

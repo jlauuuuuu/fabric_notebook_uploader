@@ -55,7 +55,7 @@ def compile_data_agent(agent_folder_name: str, verbose: bool = False):
             rprint(f"[red]No notebook file found in '{agent_folder_name}' folder[/red]")
             return False
     
-    rprint(f"[green]📓 Found notebook: {notebook_file.name}[/green]")
+    rprint(f"[green]Found notebook: {notebook_file.name}[/green]")
     
     # Define output file path
     output_file = agent_folder / f"{agent_folder_name}_fabric.py"
@@ -90,7 +90,7 @@ def compile_data_agent(agent_folder_name: str, verbose: bool = False):
     
     try:
         # Convert the notebook to Fabric Python format
-        rprint("[cyan]🔄 Converting notebook to Fabric Python format...[/cyan]")
+        rprint("[cyan]Converting notebook to Fabric Python format...[/cyan]")
         
         result = convert_ipynb_to_fabric_python(
             ipynb_file_path=str(notebook_file),
@@ -138,7 +138,7 @@ def agent(
     success = compile_data_agent(name, verbose)
     
     if success:
-        rprint(f"\n[bold]🚀 Next steps:[/bold]")
+        rprint(f"\n[bold]Next steps:[/bold]")
         rprint(f"[dim]dad-fw upload {name}[/dim]         # Upload to Fabric workspace")
         rprint(f"[dim]dad-fw run {name}[/dim]            # Execute in Fabric workspace")
     else:

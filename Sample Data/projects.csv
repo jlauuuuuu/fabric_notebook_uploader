@@ -1,0 +1,11 @@
+project_id,project_name,client_id,start_date,end_date,project_manager_id
+1,Bridge Strength Assessment,101,2024-01-15,2024-05-30,201
+2,Wind Farm Feasibility Study,102,2024-03-01,2024-09-15,202
+3,Coastal Erosion Mitigation,101,2024-04-10,2025-02-20,203
+4,Smart Water Network Design,103,2024-06-01,2025-01-31,204
+5,Urban Rail Extension Plan,104,2024-02-20,2024-12-15,202
+6,Highway Upgrade Program,101,2024-07-01,2025-05-01,201
+7,Solar Infrastructure Audit,102,2024-05-10,2024-11-30,202
+8,Stormwater Capacity Analysis,103,2024-04-01,2024-10-31,204
+9,Building Retrofit Plan,105,2024-03-20,2024-11-15,203
+10,Harbour Structural Review,101,2024-01-10,2024-08-01,201
