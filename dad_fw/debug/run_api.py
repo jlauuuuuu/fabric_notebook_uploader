@@ -27,7 +27,7 @@ def get_azure_cli_token() -> str:
         last_error = None
         for cmd in az_commands:
             try:
-                print(f"🔍 Trying command: {' '.join(cmd)}")
+                print(f"Trying command: {' '.join(cmd)}")
                 result = subprocess.run(
                     cmd,
                     capture_output=True,
@@ -36,49 +36,49 @@ def get_azure_cli_token() -> str:
                     shell=True  # Use shell to help find the command
                 )
                 token_info = json.loads(result.stdout)
-                print("✅ Successfully obtained Azure CLI token")
+                print("Successfully obtained Azure CLI token")
                 return token_info["accessToken"]
             except (subprocess.CalledProcessError, FileNotFoundError) as e:
                 last_error = e
-                print(f"⚠️ Command failed: {e}")
+                print(f"Command failed: {e}")
                 continue
         
         # If all commands failed
-        print(f"❌ Failed to get Azure CLI token with all methods")
+        print(f"Failed to get Azure CLI token with all methods")
         print(f"Last error: {last_error}")
         print("Make sure you're logged in with 'az login'")
         print("Try running 'az account get-access-token --resource https://api.fabric.microsoft.com' manually")
         sys.exit(1)
         
     except json.JSONDecodeError as e:
-        print(f"❌ Failed to parse token response: {e}")
+        print(f"Failed to parse token response: {e}")
         print(f"Raw output: {result.stdout}")
         sys.exit(1)
 
 
 def make_fabric_api_request(method: str, url: str, headers: Dict[str, str], data: Optional[Dict] = None) -> requests.Response:
     """Make a request to the Fabric API with detailed logging."""
-    print(f"🔍 API Request: {method} {url}")
+    print(f"API Request: {method} {url}")
     if data:
-        print(f"📤 Request Body: {json.dumps(data, indent=2)}")
+        print(f"Request Body: {json.dumps(data, indent=2)}")
     
     try:
         response = requests.request(method, url, headers=headers, json=data, timeout=30)
-        print(f"📥 Response Status: {response.status_code}")
-        print(f"📥 Response Headers: {dict(response.headers)}")
+        print(f"Response Status: {response.status_code}")
+        print(f"Response Headers: {dict(response.headers)}")
         
         if response.text.strip():
             try:
                 response_json = response.json()
-                print(f"📥 Response Body: {json.dumps(response_json, indent=2)}")
+                print(f"Response Body: {json.dumps(response_json, indent=2)}")
             except json.JSONDecodeError:
-                print(f"📥 Response Body (text): {response.text}")
+                print(f"Response Body (text): {response.text}")
         else:
-            print(f"📥 Response Body: (empty)")
+            print(f"Response Body: (empty)")
         
         return response
     except requests.exceptions.RequestException as e:
-        print(f"❌ API Request failed: {e}")
+        print(f"API Request failed: {e}")
         raise
 
 
@@ -95,7 +95,7 @@ def get_workspace_info(workspace_id: str, token: str) -> Dict[str, Any]:
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"❌ Failed to get workspace info: {response.status_code}")
+        print(f"Failed to get workspace info: {response.status_code}")
         response.raise_for_status()
 
 
@@ -112,7 +112,7 @@ def list_workspace_items(workspace_id: str, token: str) -> list:
     if response.status_code == 200:
         return response.json().get("value", [])
     else:
-        print(f"❌ Failed to list workspace items: {response.status_code}")
+        print(f"Failed to list workspace items: {response.status_code}")
         response.raise_for_status()
 
 
@@ -125,10 +125,10 @@ def find_notebook_by_name(workspace_id: str, notebook_name: str, token: str) -> 
     for item in items:
         if item.get("type") == "Notebook" and item.get("displayName") == notebook_name:
             notebook_id = item.get("id")
-            print(f"✅ Found notebook: {notebook_name} (ID: {notebook_id})")
+            print(f"Found notebook: {notebook_name} (ID: {notebook_id})")
             return notebook_id
     
-    print(f"❌ Notebook not found: {notebook_name}")
+    print(f"Notebook not found: {notebook_name}")
     return None
 
 
@@ -150,7 +150,7 @@ def start_notebook_execution(workspace_id: str, notebook_id: str, token: str) ->
         "executionData": execution_data
     }
     
-    print(f"🚀 Starting notebook execution...")
+    print(f"Starting notebook execution...")
     response = make_fabric_api_request("POST", url, headers, data)
     
     if response.status_code == 202:
@@ -168,13 +168,13 @@ def start_notebook_execution(workspace_id: str, notebook_id: str, token: str) ->
             'location': location_header
         }
         
-        print(f"✅ Job started successfully!")
-        print(f"📋 Job ID: {job_info.get('id')}")
-        print(f"📋 Initial Status: {job_info.get('status')}")
-        print(f"📍 Location: {location_header}")
+        print(f"Job started successfully!")
+        print(f"Job ID: {job_info.get('id')}")
+        print(f"Initial Status: {job_info.get('status')}")
+        print(f"Location: {location_header}")
         return job_info
     else:
-        print(f"❌ Failed to start notebook execution: {response.status_code}")
+        print(f"Failed to start notebook execution: {response.status_code}")
         response.raise_for_status()
 
 
@@ -191,7 +191,7 @@ def get_job_status(workspace_id: str, notebook_id: str, job_id: str, token: str)
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"❌ Failed to get job status: {response.status_code}")
+        print(f"Failed to get job status: {response.status_code}")
         response.raise_for_status()
 
 
@@ -200,7 +200,7 @@ def monitor_job_execution(workspace_id: str, notebook_id: str, job_id: str, toke
     start_time = time.time()
     check_interval = 10  # seconds
     
-    print(f"⏳ Monitoring job execution (checking every {check_interval}s)...")
+    print(f"Monitoring job execution (checking every {check_interval}s)...")
     
     while True:
         job_info = get_job_status(workspace_id, notebook_id, job_id, token)
@@ -210,7 +210,7 @@ def monitor_job_execution(workspace_id: str, notebook_id: str, job_id: str, toke
         runtime = time.time() - start_time
         runtime_str = time.strftime("%H:%M:%S", time.gmtime(runtime))
         
-        print(f"📊 Status: {status} - Runtime: {runtime_str}")
+        print(f"Status: {status} - Runtime: {runtime_str}")
         
         # Check if job is complete
         if status not in ["InProgress", "NotStarted"]:
@@ -233,16 +233,16 @@ def monitor_job_execution(workspace_id: str, notebook_id: str, job_id: str, toke
     }
     
     if status == "Completed":
-        print(f"✅ Notebook execution completed successfully!")
-        print(f"⏱️ Total runtime: {total_runtime_str}")
+        print(f"Notebook execution completed successfully!")
+        print(f"Total runtime: {total_runtime_str}")
     elif status == "Failed":
-        print(f"❌ Notebook execution failed!")
-        print(f"⏱️ Runtime before failure: {total_runtime_str}")
+        print(f"Notebook execution failed!")
+        print(f"Runtime before failure: {total_runtime_str}")
         if 'error' in job_info:
-            print(f"💥 Error details: {json.dumps(job_info['error'], indent=2)}")
+            print(f"Error details: {json.dumps(job_info['error'], indent=2)}")
     else:
-        print(f"⚠️ Notebook execution ended with status: {status}")
-        print(f"⏱️ Total runtime: {total_runtime_str}")
+        print(f"Notebook execution ended with status: {status}")
+        print(f"Total runtime: {total_runtime_str}")
     
     return result
 
@@ -258,15 +258,15 @@ def run_notebook_by_name(workspace_id: str, notebook_name: str) -> Dict[str, Any
     Returns:
         dict: Job execution results with status and runtime info
     """
-    print(f"🎯 Running notebook: {notebook_name}")
-    print(f"🏢 Workspace ID: {workspace_id}")
+    print(f"Running notebook: {notebook_name}")
+    print(f"Workspace ID: {workspace_id}")
     
     # Get authentication token
     token = get_azure_cli_token()
     
     # Get workspace info
     workspace_info = get_workspace_info(workspace_id, token)
-    print(f"🏢 Workspace: {workspace_info.get('displayName', 'Unknown')}")
+    print(f"Workspace: {workspace_info.get('displayName', 'Unknown')}")
     
     # Find notebook by name
     notebook_id = find_notebook_by_name(workspace_id, notebook_name, token)
@@ -299,15 +299,15 @@ def run_notebook_by_id(workspace_id: str, notebook_id: str) -> Dict[str, Any]:
     Returns:
         dict: Job execution results with status and runtime info
     """
-    print(f"🎯 Running notebook ID: {notebook_id}")
-    print(f"🏢 Workspace ID: {workspace_id}")
+    print(f"Running notebook ID: {notebook_id}")
+    print(f"Workspace ID: {workspace_id}")
     
     # Get authentication token
     token = get_azure_cli_token()
     
     # Get workspace info
     workspace_info = get_workspace_info(workspace_id, token)
-    print(f"🏢 Workspace: {workspace_info.get('displayName', 'Unknown')}")
+    print(f"Workspace: {workspace_info.get('displayName', 'Unknown')}")
     
     # Start execution
     job_info = start_notebook_execution(workspace_id, notebook_id, token)
@@ -329,14 +329,14 @@ def list_notebooks_in_workspace(workspace_id: str) -> list:
     Returns:
         list: List of notebook items with id and displayName
     """
-    print(f"📋 Listing notebooks in workspace: {workspace_id}")
+    print(f"Listing notebooks in workspace: {workspace_id}")
     
     # Get authentication token
     token = get_azure_cli_token()
     
     # Get workspace info
     workspace_info = get_workspace_info(workspace_id, token)
-    print(f"🏢 Workspace: {workspace_info.get('displayName', 'Unknown')}")
+    print(f"Workspace: {workspace_info.get('displayName', 'Unknown')}")
     
     # List all items
     items = list_workspace_items(workspace_id, token)
@@ -351,11 +351,50 @@ def list_notebooks_in_workspace(workspace_id: str) -> list:
                 'description': item.get('description', '')
             })
     
-    print(f"📊 Found {len(notebooks)} notebooks")
+    print(f"Found {len(notebooks)} notebooks")
     for nb in notebooks:
-        print(f"  📓 {nb['displayName']} (ID: {nb['id']})")
+        print(f"  {nb['displayName']} (ID: {nb['id']})")
     
     return notebooks
+
+
+def list_agents_in_workspace(workspace_id: str) -> list:
+    """
+    List all data agents in a workspace using direct REST API.
+    
+    Args:
+        workspace_id: The Fabric workspace ID
+        
+    Returns:
+        list: List of data agent items with id and displayName
+    """
+    print(f"Listing data agents in workspace: {workspace_id}")
+    
+    # Get authentication token
+    token = get_azure_cli_token()
+    
+    # Get workspace info
+    workspace_info = get_workspace_info(workspace_id, token)
+    print(f"Workspace: {workspace_info.get('displayName', 'Unknown')}")
+    
+    # List all items
+    items = list_workspace_items(workspace_id, token)
+    
+    # Filter data agents
+    agents = []
+    for item in items:
+        if item.get("type") == "DataAgent":
+            agents.append({
+                'id': item.get('id'),
+                'displayName': item.get('displayName'),
+                'description': item.get('description', '')
+            })
+    
+    print(f"Found {len(agents)} data agents")
+    for agent in agents:
+        print(f"{agent['displayName']} (ID: {agent['id']})")
+    
+    return agents
 
 
 if __name__ == "__main__":
@@ -367,33 +406,37 @@ if __name__ == "__main__":
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--name", help="Notebook name to run")
     group.add_argument("--id", help="Notebook ID to run")
-    group.add_argument("--list", action="store_true", help="List all notebooks in workspace")
+    group.add_argument("--list-notebooks", action="store_true", help="List all notebooks in workspace")
+    group.add_argument("--list-agents", action="store_true", help="List all data agents in workspace")
     
     args = parser.parse_args()
     
     try:
-        if args.list:
+        if args.list_notebooks:
             notebooks = list_notebooks_in_workspace(args.workspace_id)
-            print(f"\n📊 Summary: Found {len(notebooks)} notebooks")
+            print(f"\nSummary: Found {len(notebooks)} notebooks")
+        elif args.list_agents:
+            agents = list_agents_in_workspace(args.workspace_id)
+            print(f"\nSummary: Found {len(agents)} data agents")
         elif args.name:
             result = run_notebook_by_name(args.workspace_id, args.name)
             if result['success']:
-                print(f"\n✅ Execution completed successfully in {result['total_runtime_str']}")
+                print(f"\nExecution completed successfully in {result['total_runtime_str']}")
                 sys.exit(0)
             else:
-                print(f"\n❌ Execution failed")
+                print(f"\nExecution failed")
                 sys.exit(1)
         elif args.id:
             result = run_notebook_by_id(args.workspace_id, args.id)
             if result['success']:
-                print(f"\n✅ Execution completed successfully in {result['total_runtime_str']}")
+                print(f"\nExecution completed successfully in {result['total_runtime_str']}")
                 sys.exit(0)
             else:
-                print(f"\n❌ Execution failed")
+                print(f"\nExecution failed")
                 sys.exit(1)
     except KeyboardInterrupt:
-        print("\n⚠️ Execution interrupted by user")
+        print("\nExecution interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
+        print(f"\nUnexpected error: {e}")
         sys.exit(1)

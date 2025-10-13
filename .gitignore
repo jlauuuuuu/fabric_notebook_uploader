@@ -34,10 +34,10 @@ test_results/
 # OS
 .DS_Store
 Thumbs.db
-
+jeff/
 # User agent folders (ignore all created agents)
 */
 !dad_fw/
 !fabric_notebook_uploader/
-!notebooks/
 !debugging/
+!Sample Data/

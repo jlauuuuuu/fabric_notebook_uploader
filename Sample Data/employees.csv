@@ -1,0 +1,11 @@
+employee_id,name,role,department,email
+201,Alice Nguyen,Project Manager,Civil Engineering,alice.nguyen@consulteng.com
+202,Ben Li,Project Manager,Renewable Energy,ben.li@consulteng.com
+203,Clara Thompson,Project Manager,Coastal Engineering,clara.thompson@consulteng.com
+204,David Wright,Project Manager,Water Systems,david.wright@consulteng.com
+205,Emma Davis,Structural Engineer,Civil Engineering,emma.davis@consulteng.com
+206,Frank Lewis,Environmental Engineer,Sustainability,frank.lewis@consulteng.com
+207,Grace Chen,Hydraulic Engineer,Water Systems,grace.chen@consulteng.com
+208,Henry Adams,Transport Engineer,Civil Engineering,henry.adams@consulteng.com
+209,Isabel Moore,Electrical Engineer,Renewable Energy,isabel.moore@consulteng.com
+210,Jack Turner,Coastal Modeller,Coastal Engineering,jack.turner@consulteng.com

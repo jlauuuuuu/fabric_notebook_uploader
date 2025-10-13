@@ -3,6 +3,7 @@
 Compile command - Compile data agents to Fabric format
 """
 
+import subprocess
 import typer
 from rich.console import Console
 from rich import print as rprint
@@ -36,7 +37,7 @@ def compile_data_agent(agent_folder_name: str, verbose: bool = False):
     agent_folder = Path(agent_folder_name)
     
     if not agent_folder.exists():
-        rprint(f"[red]❌ Agent folder '{agent_folder_name}' not found[/red]")
+        rprint(f"[red]Agent folder '{agent_folder_name}' not found[/red]")
         return False
     
     # Find the notebook file
@@ -51,10 +52,10 @@ def compile_data_agent(agent_folder_name: str, verbose: bool = False):
         if ipynb_files:
             notebook_file = ipynb_files[0]
         else:
-            rprint(f"[red]❌ No notebook file found in '{agent_folder_name}' folder[/red]")
+            rprint(f"[red]No notebook file found in '{agent_folder_name}' folder[/red]")
             return False
     
-    rprint(f"[green]📓 Found notebook: {notebook_file.name}[/green]")
+    rprint(f"[green]Found notebook: {notebook_file.name}[/green]")
     
     # Define output file path
     output_file = agent_folder / f"{agent_folder_name}_fabric.py"
@@ -78,18 +79,18 @@ def compile_data_agent(agent_folder_name: str, verbose: bool = False):
             
             if lakehouse_name and workspace_id and lakehouse_id:
                 include_metadata = True
-                rprint(f"[cyan]🏠 Using lakehouse metadata: {lakehouse_name}[/cyan]")
+                rprint(f"[cyan]Using lakehouse metadata: {lakehouse_name}[/cyan]")
             elif lakehouse_name:
-                rprint(f"[cyan]🏠 Lakehouse name found: {lakehouse_name} (no IDs for metadata)[/cyan]")
+                rprint(f"[cyan]Lakehouse name found: {lakehouse_name} (no IDs for metadata)[/cyan]")
             else:
-                rprint("[dim]ℹ️  No lakehouse configuration found[/dim]")
+                rprint("[dim]No lakehouse configuration found[/dim]")
                 
         except Exception as e:
-            rprint(f"[yellow]⚠️  Could not load config: {e}[/yellow]")
+            rprint(f"[yellow]Could not load config: {e}[/yellow]")
     
     try:
         # Convert the notebook to Fabric Python format
-        rprint("[cyan]🔄 Converting notebook to Fabric Python format...[/cyan]")
+        rprint("[cyan]Converting notebook to Fabric Python format...[/cyan]")
         
         result = convert_ipynb_to_fabric_python(
             ipynb_file_path=str(notebook_file),
@@ -100,16 +101,16 @@ def compile_data_agent(agent_folder_name: str, verbose: bool = False):
             include_lakehouse_metadata=include_metadata
         )
         
-        rprint(f"[green]✅ Successfully compiled to: {output_file.name}[/green]")
-        rprint(f"[dim]📁 Output location: {output_file}[/dim]")
+        rprint(f"[green]Successfully compiled to: {output_file.name}[/green]")
+        rprint(f"[dim]Output location: {output_file}[/dim]")
         
         # Show file size
         file_size = output_file.stat().st_size
-        rprint(f"[dim]� File size: {file_size:,} bytes[/dim]")
+        rprint(f"[dim]File size: {file_size:,} bytes[/dim]")
         
         # Show preview if verbose
         if verbose:
-            rprint(f"\n[bold]📋 Preview (first 10 lines):[/bold]")
+            rprint(f"\n[bold]Preview (first 10 lines):[/bold]")
             with open(output_file, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
                 for i, line in enumerate(lines[:10]):
@@ -120,7 +121,7 @@ def compile_data_agent(agent_folder_name: str, verbose: bool = False):
         return True
         
     except Exception as e:
-        rprint(f"[red]❌ Error during compilation: {e}[/red]")
+        rprint(f"[red]Error during compilation: {e}[/red]")
         if verbose:
             import traceback
             console.print_exception()
@@ -137,7 +138,7 @@ def agent(
     success = compile_data_agent(name, verbose)
     
     if success:
-        rprint(f"\n[bold]🚀 Next steps:[/bold]")
+        rprint(f"\n[bold]Next steps:[/bold]")
         rprint(f"[dim]dad-fw upload {name}[/dim]         # Upload to Fabric workspace")
         rprint(f"[dim]dad-fw run {name}[/dim]            # Execute in Fabric workspace")
     else:
@@ -162,7 +163,7 @@ def compile_all(
                 agents.append(item)
     
     if not agents:
-        rprint("[yellow]⚠️ No data agents found to compile[/yellow]")
+        rprint("[yellow]No data agents found to compile[/yellow]")
         return
     
     rprint(f"[cyan]Found {len(agents)} agents to compile[/cyan]")
@@ -178,22 +179,22 @@ def compile_all(
             result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode == 0:
-                rprint(f"[green]✅ {agent}[/green]")
+                rprint(f"[green]{agent}[/green]")
                 compiled += 1
             else:
-                rprint(f"[red]❌ {agent}[/red]")
+                rprint(f"[red]{agent}[/red]")
                 if verbose and result.stderr:
                     rprint(f"[red]{result.stderr}[/red]")
                 failed += 1
                 
         except Exception as e:
-            rprint(f"[red]❌ {agent}: {e}[/red]")
+            rprint(f"[red]{agent}: {e}[/red]")
             failed += 1
     
     rprint(f"\n[bold]Compilation Summary:[/bold]")
-    rprint(f"[green]✅ Compiled: {compiled}[/green]")
+    rprint(f"[green]Compiled: {compiled}[/green]")
     if failed > 0:
-        rprint(f"[red]❌ Failed: {failed}[/red]")
+        rprint(f"[red]Failed: {failed}[/red]")
 
 
 if __name__ == "__main__":

@@ -88,7 +88,7 @@ def run_notebook(
         raise typer.Exit(1)
 
 
-@app.command("list")
+@app.command("list-notebooks")
 def list_notebooks(
     workspace_id: str = typer.Option(..., "--workspace-id", "-w", help="Fabric workspace ID"),
 ):
@@ -98,12 +98,35 @@ def list_notebooks(
     
     try:
         debug_script = Path(__file__).parent.parent / "debug" / "run_api.py"
-        cmd = [sys.executable, str(debug_script), workspace_id, "--list"]
+        cmd = [sys.executable, str(debug_script), workspace_id, "--list-notebooks"]
         
         result = subprocess.run(cmd, text=True)
         
         if result.returncode != 0:
             rprint("[red]Failed to list notebooks[/red]")
+            raise typer.Exit(1)
+            
+    except Exception as e:
+        rprint(f"[red]Error: {e}[/red]")
+        raise typer.Exit(1)
+
+
+@app.command("list-agents")
+def list_agents(
+    workspace_id: str = typer.Option(..., "--workspace-id", "-w", help="Fabric workspace ID"),
+):
+    """List all data agents in a Fabric workspace (debug mode)"""
+    
+    rprint(f"[bold]Debug: Listing data agents in workspace[/bold]")
+    
+    try:
+        debug_script = Path(__file__).parent.parent / "debug" / "run_api.py"
+        cmd = [sys.executable, str(debug_script), workspace_id, "--list-agents"]
+        
+        result = subprocess.run(cmd, text=True)
+        
+        if result.returncode != 0:
+            rprint("[red]Failed to list data agents[/red]")
             raise typer.Exit(1)
             
     except Exception as e:

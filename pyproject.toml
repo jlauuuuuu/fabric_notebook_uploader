@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Data Agent Development Framework - A comprehensive toolkit for creating, managing, and deploying Fabric data agents"
 readme = "README.md"
 authors = [
-    {name = "jlauuuuuu", email = "jeremy.lau@ghd.com"}
+    {name = "jlauuuuuu"}
 ]
 license = "MIT"
 license-files = ["LICENSE"]

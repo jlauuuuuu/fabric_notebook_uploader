@@ -1,15 +1,19 @@
 # Data Agent Development Framework (DAD-FW)
 
-Professional CLI toolkit for creating, managing, and deploying data agent notebooks in Microsoft Fabric.
+CLI toolkit for creating, managing, and deploying data agent notebooks in Microsoft Fabric (and testing locally).
 
+Combines the usage of the following tools
+- 
+- [**Fabric Data Agent External Client**](https://github.com/microsoft/fabric_data_agent_client)
+- [**Fabric Data Agent SDK**](https://pypi.org/project/fabric-data-agent-sdk/)
+- [**Fabric REST API**](https://learn.microsoft.com/en-us/rest/api/fabric/articles/)
+- [**Microsoft Fabric SDK**](https://github.com/DaSenf1860/ms-fabric-sdk-core) - note this one is not by Microsoft...
 ## Features
 
-- **Template-based scaffolding**: Create data agents from professional templates
-- **Jupyter to Fabric conversion**: Seamless notebook format conversion
-- **Direct Fabric integration**: Upload and execute notebooks remotely
-- **Clean CLI interface**: Simple, intuitive command structure
-- **Configuration management**: Automated workspace and agent tracking
-- **Professional packaging**: Installable Python package with dependencies
+- **Template-based scaffolding**: Create data agents from pre-configured templates
+- **Direct Fabric integration**: Compile notebooks into a Fabric readable format and upload to target workspaces
+- **Automated Creation and Publishing**: Create Fabric Data Agents from Fabric notebooks run from your local machine. 
+- **Evaluations and Testing**: Test your Data Agent from you local machine with the Fabric Data Agent External Client
 
 ## Installation
 
@@ -17,8 +21,10 @@ Professional CLI toolkit for creating, managing, and deploying data agent notebo
 - Python 3.8+
 - Azure CLI installed and configured (`az login`)
 - Microsoft Fabric workspace access
+- You must add a default environment in your workspace that has the fabric-data-agent-sdk installed. (For some reason I can't magic install libraries in my notebooks without adding a setting that I can't find atm.You can **NOT** use a %pip install command in the notebook.)
 
-### Option 1: Clean Install
+### User Install
+If you plan to use the tool install this way
 ```bash
 # Create isolated environment
 python -m venv .venv
@@ -31,13 +37,9 @@ pip install git+https://github.com/jlauuuuuu/fabric_notebook_uploader.git
 dad-fw --help
 ```
 
-### Option 2: Install from Package
-```bash
-# Download and install wheel file
-pip install dad_fw-1.0.0-py3-none-any.whl
-```
 
-### Option 3: Development Install
+### Development Install
+If you want to add stuff to the tool then install this way
 ```bash
 git clone https://github.com/jlauuuuuu/fabric_notebook_uploader.git
 cd fabric_notebook_uploader
@@ -46,14 +48,14 @@ python -m venv .venv
 pip install -e .
 ```
 
-## Usage
+## Workflow/Usage
 
 ```bash
 # Create new data agent
-dad-fw init my-agent
+dad-fw init my-agent # See configuration heading for more instructions after this step
 
 # Compile to Fabric format
-dad-fw compile my-agent
+dad-fw compile my-agent # This compiles the .ipynb notebook into a .py file for Fabric upload.
 
 # Upload to Fabric workspace
 dad-fw upload my-agent
@@ -61,49 +63,16 @@ dad-fw upload my-agent
 # Run in Fabric
 dad-fw run my-agent
 ```
-
-## Quick Start
-
-1. **Initialize a new data agent**:
-   ```bash
-   dad-fw init sales-analysis --description "Analyzes sales data trends"
-   ```
-
-2. **Compile the notebook**:
-   ```bash
-   dad-fw compile sales-analysis
-   ```
-
-3. **Upload to Fabric**:
-   ```bash
-   dad-fw upload sales-analysis
-   ```
-
-4. **Run in Fabric workspace**:
-   ```bash
-   dad-fw run sales-analysis
-   ```
-
-## Commands
-
-| Command | Description | Example |
-|---------|-------------|---------|
-| `dad-fw init <name>` | Create new data agent with templates | `dad-fw init my-agent -d "Description"` |
-| `dad-fw compile <name>` | Convert notebook to Fabric Python format | `dad-fw compile my-agent` |
-| `dad-fw upload <name>` | Upload compiled agent to Fabric workspace | `dad-fw upload my-agent` |
-| `dad-fw run <name>` | Execute agent in Fabric to create data agent | `dad-fw run my-agent` |
-| `dad-fw debug` | Advanced debugging and API commands | `dad-fw debug --help` |
+**Note**: Testing is done via a created notebook in the agent directory...
 
 ## Configuration
 
-Create `config.json` in your project root:
+Set up your config file for each agent by filling these settings
 
 ```json
 {
   "workspace_id": "your-fabric-workspace-id",
-  "tenant_id": "your-azure-tenant-id",
-  "lakehouse_id": "your-lakehouse-id",
-  "lakehouse_name": "YourLakehouse"
+  "tenant_id": "your-azure-tenant-id"
 }
 ```
 
@@ -127,3 +96,17 @@ my-agent/
 ├── my-agent.ipynb           # Main data agent notebook
 └── testing.ipynb           # Testing framework
 ```
+
+## Setup with Sample Data
+You can download the .csv files from the Sample Data Folder and upload to a lakehouse if you want to be able to run and test the default configured Data Agent in the template following the below steps.
+
+1. Download the 5 .csv files from the Sample Data Folder
+2. Go to your Fabric Workspace and create a lakehouse called  ```DataAgentDefaultLH```
+3. Upload your .csv files
+4. Go to Lakehouse Files and turn them into Tables
+4. Done! You can now run the default template notebook yay
+
+
+## License
+
+This project is licensed under the MIT License

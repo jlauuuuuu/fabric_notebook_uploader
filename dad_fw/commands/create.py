@@ -63,14 +63,14 @@ def agent(
     agent_folder = Path(folder_name)
     
     if agent_folder.exists() and not force:
-        rprint(f"[red]❌ Folder '{folder_name}' already exists[/red]")
+        rprint(f"[red]ERROR: Folder '{folder_name}' already exists[/red]")
         if not typer.confirm("Overwrite existing folder?"):
-            rprint("❌ Cancelled")
+            rprint("Cancelled")
             raise typer.Exit(1)
     
     # Create the folder
     agent_folder.mkdir(exist_ok=True)
-    rprint(f"[green]📁 Created folder: {agent_folder}[/green]")
+    rprint(f"[green]Created folder: {agent_folder}[/green]")
     
     # Create config.json with same structure as existing config system
     notebook_filename = f"{folder_name}.ipynb"
@@ -80,22 +80,19 @@ def agent(
         "agent_name": name,
         "folder_name": folder_name,
         "created_date": datetime.now().isoformat(),
-        "lakehouse_name": "",
-        "table_names": [],
-        "instructions": "",
-        "data_source_notes": "",
-        "few_shot_examples": {},
+        "workspace_id": "",
         "status": "scaffolded",
-        "notebook_path": str(agent_folder / notebook_filename),
-        "python_path": str(agent_folder / python_filename),
+        "tenant_id": "",
         "notebook_id": "",
-        "test_url": ""
+        "notebook_name": "",
+        "agent_id": "",
+        "agent_url": ""
     }
     
     config_file = agent_folder / "config.json"
     with open(config_file, 'w', encoding='utf-8') as f:
         json.dump(config_data, f, indent=2, ensure_ascii=False)
-    rprint(f"[green]� Created config file: {config_file}[/green]")
+    rprint(f"[green]Created config file: {config_file}[/green]")
     
     # Create a README for the folder
     readme_content = f"""# Data Agent: {name}
@@ -105,9 +102,25 @@ Folder: {folder_name}
 
 ## Files
 
-- `config.json` - Basic configuration (optional for reference)
+- `config.json` - Agent configuration (required for workspace_id and tracking)
 - `{folder_name}.ipynb` - Complete data agent notebook with embedded configuration
 - `{folder_name}_testing.ipynb` - Testing notebook for deployed agent
+
+## Setup
+
+1. Edit `config.json` and add your workspace_id:
+   ```json
+   {{
+     "workspace_id": "your-fabric-workspace-id-here"
+   }}
+   ```
+
+2. Compile and upload:
+   ```bash
+   dad-fw compile {folder_name}
+   dad-fw upload {folder_name}
+   dad-fw run {folder_name}
+   ```
 - `README.md` - This file
 
 ## Next Steps
@@ -154,15 +167,15 @@ After your agent is deployed:
     readme_file = agent_folder / "README.md"
     with open(readme_file, 'w', encoding='utf-8') as f:
         f.write(readme_content)
-    rprint(f"[green]📄 Created README file: {readme_file}[/green]")
+    rprint(f"[green]Created README file: {readme_file}[/green]")
     
     # Create the data agent notebook file
     notebook_file = agent_folder / f"{folder_name}.ipynb"
     try:
         create_data_agent_notebook(name, folder_name, notebook_file)
-        rprint(f"[green]📓 Created data agent notebook: {notebook_file}[/green]")
+        rprint(f"[green]Created data agent notebook: {notebook_file}[/green]")
     except Exception as e:
-        rprint(f"[yellow]⚠️ Could not create data agent notebook: {e}[/yellow]")
+        rprint(f"[yellow]Could not create data agent notebook: {e}[/yellow]")
     
     # Copy testing notebook template
     try:
@@ -172,24 +185,24 @@ After your agent is deployed:
         if testing_template.exists():
             testing_notebook = agent_folder / f"{folder_name}_testing.ipynb"
             shutil.copy2(testing_template, testing_notebook)
-            rprint(f"[green]📓 Created testing notebook: {testing_notebook}[/green]")
+            rprint(f"[green]Created testing notebook: {testing_notebook}[/green]")
         else:
-            rprint(f"[yellow]⚠️ Testing template not found: {testing_template}[/yellow]")
+            rprint(f"[yellow]Testing template not found: {testing_template}[/yellow]")
             
     except Exception as e:
-        rprint(f"[yellow]⚠️ Could not create testing notebook: {e}[/yellow]")
+        rprint(f"[yellow]Could not create testing notebook: {e}[/yellow]")
     
-    rprint(f"\n[green]✅ Data agent scaffold created successfully![/green]")
-    rprint(f"[dim]� Location: {agent_folder}[/dim]")
-    rprint(f"\n[cyan]📋 Files created:[/cyan]")
-    rprint(f"   📄 config.json - Basic configuration reference")
-    rprint(f"   📓 {folder_name}.ipynb - Complete notebook with embedded config")
-    rprint(f"   📓 {folder_name}_testing.ipynb - Testing notebook for deployed agent")
-    rprint(f"   📋 README.md - Documentation")
+    rprint(f"\n[green]Data agent scaffold created successfully![/green]")
+    rprint(f"[dim]Location: {agent_folder}[/dim]")
+    rprint(f"\n[cyan]Files created:[/cyan]")
+    rprint(f"   config.json - Agent configuration (add workspace_id here)")
+    rprint(f"   {folder_name}.ipynb - Complete notebook with embedded config")
+    rprint(f"   {folder_name}_testing.ipynb - Testing notebook for deployed agent")
+    rprint(f"   README.md - Documentation")
     rprint(f"\n[bold]Next steps:[/bold]")
-    rprint(f"1. Open {folder_name}.ipynb and update the configuration cells")
-    rprint(f"2. Customize lakehouse_name, table_names, instructions, and examples")
-    rprint(f"3. Upload notebook to Fabric and run to create your data agent")
+    rprint(f"1. [yellow]Add workspace_id to config.json[/yellow]")
+    rprint(f"2. Open {folder_name}.ipynb and update the configuration cells")
+    rprint(f"3. Customize lakehouse_name, table_names, instructions, and examples")
     rprint(f"4. Use dad-fw compile/upload/run commands for automated workflow")
     rprint(f"5. Test with {folder_name}_testing.ipynb after deployment")
 
@@ -199,14 +212,14 @@ def template(
     name: str = typer.Argument(..., help="Name of the template to create"),
     base: str = typer.Option("basic", "--base", "-b", help="Base template to copy from"),
 ):
-    """📄 Create a new agent template"""
+    """Create a new agent template"""
     
-    rprint(f"\n[bold blue]📄 Creating Template: {name}[/bold blue]")
+    rprint(f"\n[bold blue]Creating Template: {name}[/bold blue]")
     
     template_dir = Path("templates") / name
     
     if template_dir.exists():
-        rprint(f"[red]❌ Template '{name}' already exists[/red]")
+        rprint(f"[red]Template '{name}' already exists[/red]")
         raise typer.Exit(1)
     
     try:
@@ -218,35 +231,35 @@ def template(
         if base_template.exists():
             import shutil
             shutil.copytree(base_template, template_dir, dirs_exist_ok=True)
-            rprint(f"[green]✅ Template created based on '{base}'[/green]")
+            rprint(f"[green]Template created based on '{base}'[/green]")
         else:
             # Create basic template structure
             (template_dir / "config.json").write_text('{\n  "template_name": "' + name + '",\n  "description": "Custom template"\n}')
             (template_dir / f"{name}_fabric.py").write_text(f"# {name} Data Agent Template\n\n# Add your agent code here\n")
-            rprint(f"[green]✅ Basic template structure created[/green]")
+            rprint(f"[green]Basic template structure created[/green]")
         
-        rprint(f"[dim]📁 Location: ./templates/{name}/[/dim]")
+        rprint(f"[dim]Location: ./templates/{name}/[/dim]")
         
     except Exception as e:
-        rprint(f"[red]❌ Error creating template: {e}[/red]")
+        rprint(f"[red]Error creating template: {e}[/red]")
         raise typer.Exit(1)
 
 
 @app.command("list")
 def list_templates():
-    """📋 List available templates"""
-    
-    rprint("\n[bold blue]📋 Available Templates[/bold blue]\n")
-    
+    """List available templates"""
+
+    rprint("\n[bold blue]Available Templates[/bold blue]\n")
+
     templates_dir = Path("templates")
     if not templates_dir.exists():
-        rprint("[yellow]⚠️ No templates directory found[/yellow]")
+        rprint("[yellow]No templates directory found[/yellow]")
         return
     
     templates = [d for d in templates_dir.iterdir() if d.is_dir()]
     
     if not templates:
-        rprint("[yellow]⚠️ No templates found[/yellow]")
+        rprint("[yellow]No templates found[/yellow]")
         return
     
     for template in templates:
@@ -261,7 +274,7 @@ def list_templates():
             except:
                 pass
         
-        rprint(f"[cyan]📄 {template.name}[/cyan] - {description}")
+        rprint(f"[cyan]{template.name}[/cyan] - {description}")
 
 
 if __name__ == "__main__":
