@@ -1,14 +1,14 @@
 """
-Data Agent Development Framework (DAD-FW)
-A comprehensive CLI toolkit for creating, managing, and deploying Microsoft Fabric data agents.
+Data Agent Development Framework - Object-Oriented Version
+
+A modern, object-oriented redesign of the DAD-FW CLI toolkit for creating, 
+managing, and deploying Microsoft Fabric data agents.
 """
 
-__version__ = "1.0.0"
-__author__ = "DAD-FW Contributors"
-__description__ = "Data Agent Development Framework for Microsoft Fabric"
+__version__ = "2.0.0"
+__author__ = "DAD-FW Contributors" 
+__description__ = "Data Agent Development Framework - Object-Oriented Version"
 
-# Import and expose the FabricDataAgentClient for easy access
-from .fabric_data_agent_client import FabricDataAgentClient
+from .core import FrameworkUtils, DataAgent
 
-# Make it available when someone does 'from dad_fw import *'
-__all__ = ["FabricDataAgentClient"]
+__all__ = ['FrameworkUtils', 'DataAgent']

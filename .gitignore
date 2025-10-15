@@ -38,12 +38,12 @@ Thumbs.db
 # User agent folders (ignore all created agents)
 */
 !dad_fw/
+!dad_fw/**
 !fabric_notebook_uploader/
 !debugging/
 !Sample Data/
 
 
-
-!dad/
-!dad/**
+!dad_old/
+!dad_old/**
 

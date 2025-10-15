@@ -12,7 +12,7 @@ import shutil
 from pathlib import Path
 from datetime import datetime
 
-from dad.core.framework_utils import FrameworkUtils
+from dad_fw.core.framework_utils import FrameworkUtils
 
 # Add parent directories to path
 current_dir = Path(__file__).parent.parent.parent
@@ -35,7 +35,7 @@ def init(
         # Validate workspace
         if not FrameworkUtils.validate_workspace(base_dir):
             rprint(f"[red]Invalid workspace directory: {base_dir}[/red]")
-            raise typer.Exit(1)
+            sys.exit(1)
             
         agent = FrameworkUtils.create_agent(name, base_dir, force)
         
@@ -51,7 +51,7 @@ def init(
         
     except Exception as e:
         rprint(f"[red]Failed to create agent: {e}[/red]")
-        raise typer.Exit(1)
+        sys.exit(1)
     
 
 
@@ -70,12 +70,12 @@ def compile(
         agent = FrameworkUtils.get_agent(name, base_dir)
         if not agent:
             rprint(f"[red]Agent '{name}' not found in {base_dir}[/red]")
-            raise typer.Exit(1)
+            sys.exit(1)
         
         # Check if notebook exists
         if not agent.get_notebook_file().exists():
             rprint(f"[red]Notebook file not found: {agent.get_notebook_file()}[/red]")
-            raise typer.Exit(1)
+            sys.exit(1)
         
         rprint(f"[cyan]Converting notebook: {agent.get_notebook_file()}[/cyan]")
         
@@ -114,45 +114,140 @@ def compile(
         
     except Exception as e:
         rprint(f"[red]Failed to compile agent: {e}[/red]")
-        raise typer.Exit(1)
+        sys.exit(1)
 
+@app.command()
 def upload(
     name: str = typer.Argument(..., help="Name of the data agent to upload"),
-    project_dir: Optional[Path] = typer.Option(None, "--project-dir", "-p", help="Project directory (defaults to current directory)"),
+    workspace_id: Optional[str] = typer.Option(None, "--workspace-id", "-w", help="Fabric workspace ID (uses config if not provided)"),
+    notebook_name: Optional[str] = typer.Option(None, "--custom-notebook-name", "-n", help="Display name for notebook in Fabric (defaults to agent name)"),
+    use_ipynb: bool = typer.Option(False, "--use-ipynb", help="Upload raw .ipynb file instead of Fabric Python format"),
+    update: bool = typer.Option(False, "--update", "-u", help="Force update existing notebook without asking"),
 ):
+    """Upload the agent's notebook to Microsoft Fabric."""
     rprint(f"\n[bold blue]Uploading Data Agent: {name}[/bold blue]")
     try:
-        base_dir = project_dir.resolve() if project_dir else Path.cwd()
+        base_dir = Path.cwd()
         
         agent = FrameworkUtils.get_agent(name, base_dir)
         if not agent:
             rprint(f"[red]Agent '{name}' not found in {base_dir}[/red]")
-            raise typer.Exit(1)
-            
-        rprint(f"[yellow]Upload functionality coming soon...[/yellow]")
+            sys.exit(1)
+        agent.load_config()
+
+        # Show upload details
+        display_name = notebook_name if notebook_name else agent.name
+        if workspace_id:
+            rprint(f"[cyan]Using workspace ID: {workspace_id}[/cyan]")
+        else:
+            rprint("[cyan]Using workspace ID from agent config[/cyan]")
+        
+        rprint(f"[cyan]Notebook name: {display_name}[/cyan]")
+        
+        if use_ipynb:
+            rprint("[cyan]Uploading as raw .ipynb file...[/cyan]")
+        else:
+            rprint("[cyan]Uploading as Fabric Python format...[/cyan]")
+            # Check if auto-compile is needed
+            fabric_file = agent.get_fabric_python_file()
+            if not fabric_file.exists():
+                rprint("[cyan]Auto-compiling notebook...[/cyan]")
+        
+        # Use the agent's upload method with update support
+        result = agent.upload_to_fabric(
+            workspace_id=workspace_id,
+            notebook_name=notebook_name,
+            use_ipynb=use_ipynb,
+            force_update=update,
+            ask_before_update=not update  # Don't ask if --update flag is used
+        )
+        
+        # Show success message
+        if result and result.get('updated'):
+            rprint(f"[green]Successfully updated existing notebook in Fabric![/green]")
+        else:
+            rprint(f"[green]Successfully uploaded new notebook to Fabric![/green]")
+        
+        rprint(f"[green]Notebook Name: {display_name}[/green]")
+        
+        # Show additional details if available
+        if result and isinstance(result, dict) and "id" in result:
+            rprint(f"[dim]Notebook ID: {result['id']}[/dim]")
+
+        rprint("[dim]Updated agent config with upload info[/dim]")
         
     except Exception as e:
         rprint(f"[red]Failed to upload agent: {e}[/red]")
-        raise typer.Exit(1)
+        sys.exit(1)
 
+@app.command()
 def run(
     name: str = typer.Argument(..., help="Name of the data agent to run"),
-    project_dir: Optional[Path] = typer.Option(None, "--project-dir", "-p", help="Project directory (defaults to current directory)"),
+    workspace_id: Optional[str] = typer.Option(None, "--workspace-id", "-w", help="Fabric workspace ID (uses config if not provided)"),
 ):
+    """Execute the agent's notebook in Microsoft Fabric."""
     rprint(f"\n[bold blue]Running Data Agent: {name}[/bold blue]")
     try:
-        base_dir = project_dir.resolve() if project_dir else Path.cwd()
+        base_dir = Path.cwd()
         
         agent = FrameworkUtils.get_agent(name, base_dir)
         if not agent:
             rprint(f"[red]Agent '{name}' not found in {base_dir}[/red]")
-            raise typer.Exit(1)
-            
-        rprint(f"[yellow]Run functionality coming soon...[/yellow]")
+            sys.exit(1)
+        
+        # Load config to show execution details
+        config = agent.load_config()
+        
+        # Show execution details
+        if workspace_id:
+            rprint(f"[cyan]Using workspace ID: {workspace_id}[/cyan]")
+        else:
+            rprint("[cyan]Using workspace ID from agent config[/cyan]")
+        
+        notebook_name = config.get("notebook_name")
+        notebook_id = config.get("notebook_id")
+        
+        if notebook_name:
+            rprint(f"[cyan]Notebook: {notebook_name}[/cyan]")
+        elif notebook_id:
+            rprint(f"[cyan]Notebook ID: {notebook_id}[/cyan]")
+        else:
+            rprint("[yellow]No notebook info found. Make sure the agent has been uploaded first.[/yellow]")
+            rprint(f"[dim]Run: python -m dad.cli upload {name}[/dim]")
+            sys.exit(1)
+        
+        rprint("[cyan]Starting execution...[/cyan]")
+        
+        # Use the agent's run method
+        result = agent.run_in_fabric(workspace_id=workspace_id)
+        
+        # Show execution summary
+        rprint(f"\n[bold]Execution Summary:[/bold]")
+        rprint(f"[green]Status: {result['status']}[/green]" if result['success'] else f"[red]Status: {result['status']}[/red]")
+        rprint(f"Runtime: {result['total_runtime_str']}")
+        rprint(f"[dim]Job ID: {result['job_id']}[/dim]")
+        
+        # Show data agent info if found
+        if result.get('agent_found'):
+            rprint(f"\n[bold green]Data Agent Created:[/bold green]")
+            rprint(f"Agent Name: {result['agent_display_name']}")
+            rprint(f"Agent ID: {result['agent_id']}")
+            rprint(f"[green]Agent URL: {result['agent_url']}[/green]")
+        elif result['success']:
+            rprint(f"\n[yellow]Data agent may have been created, but could not be found automatically.[/yellow]")
+            rprint(f"[dim]Check the Fabric workspace for the new agent.[/dim]")
+        
+        if result['success']:
+            rprint(f"\n[green]Data agent '{name}' executed successfully![/green]")
+            rprint("[dim]Your data agent should now be available in Fabric[/dim]")
+        else:
+            rprint(f"\n[red]Execution failed for '{name}'[/red]")
+            rprint("[dim]Check the notebook in Fabric workspace for error details[/dim]")
+            sys.exit(1)
         
     except Exception as e:
         rprint(f"[red]Failed to run agent: {e}[/red]")
-        raise typer.Exit(1)
+        sys.exit(1)
 
 @app.command()
 def list_cmd(
@@ -164,7 +259,7 @@ def list_cmd(
         
         if not FrameworkUtils.validate_workspace(base_dir):
             rprint(f"[red]Invalid workspace directory: {base_dir}[/red]")
-            raise typer.Exit(1)
+            sys.exit(1)
             
         agents = FrameworkUtils.list_agents(base_dir)
         
@@ -188,6 +283,4 @@ def list_cmd(
             
     except Exception as e:
         rprint(f"[red]Failed to list agents: {e}[/red]")
-        raise typer.Exit(1)
-
-
+        sys.exit(1)
