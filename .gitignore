@@ -3,6 +3,9 @@
 venv/
 env/
 __pycache__/
+*/__pycache__/
+**/__pycache__/
+*.py[cod]
 *.pyc
 *.pyo
 *.pyd
@@ -14,6 +17,7 @@ dist/
 build/
 .coverage
 htmlcov/
+*.pyc
 
 # Configuration and data
 config.json
@@ -34,16 +38,4 @@ test_results/
 # OS
 .DS_Store
 Thumbs.db
-
-# User agent folders (ignore all created agents)
-*/
-!dad_fw/
-!dad_fw/**
-!fabric_notebook_uploader/
-!debugging/
-!Sample Data/
-
-
-!dad_old/
-!dad_old/**
 

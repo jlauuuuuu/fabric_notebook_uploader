@@ -65,7 +65,13 @@ class FabricAPI:
             description="Created from .ipynb file via DAD Framework"
         )
         
-        return notebook
+        # Convert notebook object to dictionary for consistent return type
+        return {
+            'id': notebook.id,
+            'display_name': notebook.display_name,
+            'type': getattr(notebook, 'type', 'Notebook'),
+            'workspace_id': workspace_id
+        }
     
     @staticmethod
     def create_notebook_from_fabric_python(workspace_id: str, fabric_python_content: str, notebook_name: str) -> Dict[str, Any]:
@@ -107,7 +113,13 @@ class FabricAPI:
             description="Created from Fabric Python format via DAD Framework"
         )
         
-        return notebook
+        # Convert notebook object to dictionary for consistent return type
+        return {
+            'id': notebook.id,
+            'display_name': notebook.display_name,
+            'type': getattr(notebook, 'type', 'Notebook'),
+            'workspace_id': workspace_id
+        }
     
     @staticmethod
     def create_notebook_from_fabric_python_file(workspace_id: str, fabric_python_file_path: str, notebook_name: str) -> Dict[str, Any]:
