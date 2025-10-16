@@ -2,9 +2,9 @@
 .venv/
 venv/
 env/
-__pycache__/
-*/__pycache__/
-**/__pycache__/
+__pycache__/*
+*/__pycache__/*
+**/__pycache__/*
 *.py[cod]
 *.pyc
 *.pyo
@@ -38,4 +38,3 @@ test_results/
 # OS
 .DS_Store
 Thumbs.db
-

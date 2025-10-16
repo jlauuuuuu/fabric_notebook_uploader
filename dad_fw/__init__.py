@@ -11,4 +11,4 @@ __description__ = "Data Agent Development Framework - Object-Oriented Version"
 
 from .core import FrameworkUtils, DataAgent
 
-__all__ = ['FrameworkUtils', 'DataAgent']
+__all__ = ['FrameworkUtils', 'DataAgent', ]
