@@ -16,23 +16,21 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "typer>=0.19.0",
     "rich>=14.0.0",
     "requests>=2.32.0",
-    "azure-identity>=1.15.0", 
-    "requests",
+    "azure-identity>=1.15.0",
     "msfabricpysdkcore",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
     "nbformat>=5.0.0",
-    "ms-fabric-cli",
-    "azure-cli"
 ]
 
 [project.optional-dependencies]
@@ -68,3 +66,46 @@ target-version = ['py38']
 python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
+
+[tool.pixi.project]
+channels = ["conda-forge", "pyviz"]
+platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+
+[tool.pixi.dependencies]
+python = ">=3.9,<3.13"
+pip = "*"
+# Core dependencies from conda-forge
+typer = ">=0.19.0"
+rich = ">=14.0.0"
+requests = ">=2.32.0"
+python-dotenv = ">=1.0.0"
+nbformat = ">=5.0.0"
+# SSL/Certificate support
+ca-certificates = "*"
+certifi = "*"
+openssl = "*"
+
+[tool.pixi.pypi-dependencies]
+# Only essential PyPI-only packages
+msfabricpysdkcore = "*"
+azure-identity = ">=1.15.0"
+openai = ">=1.0.0"
+dad-fw = { path = ".", editable = true }
+
+[tool.pixi.feature.dev.dependencies]
+pytest = ">=7.0.0"
+black = ">=22.0.0"
+flake8 = ">=4.0.0"
+mypy = ">=0.950"
+jupyter = "*"
+ipykernel = "*"
+
+[tool.pixi.environments]
+default = { features = [] }
+dev = { features = ["dev"] }
+
+[tool.pixi.tasks]
+install = "pip install -e ."
+test = "pytest"
+format = "black dad_fw"
+lint = "flake8 dad_fw"

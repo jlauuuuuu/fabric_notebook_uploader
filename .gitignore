@@ -37,4 +37,11 @@ test_results/
 
 # OS
 .DS_Store
-Thumbs.db
+Thumbs.db# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+
+test_env1/
+max/
+.pixi/
