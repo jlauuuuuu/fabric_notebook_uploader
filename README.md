@@ -18,7 +18,7 @@ Combines the usage of the following tools
 ## Installation
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.11+
 - Azure CLI installed and configured (`az login`)
 - Microsoft Fabric workspace access
 - You must add a default environment in your workspace that has the fabric-data-agent-sdk installed. (For some reason I can't magic install libraries in my notebooks without adding a setting that I can't find atm.You can **NOT** use a %pip install command in the notebook.)
