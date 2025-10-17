@@ -16,12 +16,10 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "typer>=0.19.0",
     "rich>=14.0.0",
@@ -60,45 +58,28 @@ dad_fw = ["templates/**/*", "*.json"]
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py311']
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 
 [tool.pixi.project]
-channels = ["conda-forge", "pyviz"]
+channels = ["conda-forge"]
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 
 [tool.pixi.dependencies]
-python = ">=3.9,<3.13"
+python = ">=3.11,<3.13"
 pip = "*"
-# Core dependencies from conda-forge
-typer = ">=0.19.0"
-rich = ">=14.0.0"
-requests = ">=2.32.0"
-python-dotenv = ">=1.0.0"
-nbformat = ">=5.0.0"
-# SSL/Certificate support
-ca-certificates = "*"
-certifi = "*"
-openssl = "*"
 
 [tool.pixi.pypi-dependencies]
-# Only essential PyPI-only packages
-msfabricpysdkcore = "*"
-azure-identity = ">=1.15.0"
-openai = ">=1.0.0"
 dad-fw = { path = ".", editable = true }
 
 [tool.pixi.feature.dev.dependencies]
 pytest = ">=7.0.0"
 black = ">=22.0.0"
 flake8 = ">=4.0.0"
-mypy = ">=0.950"
-jupyter = "*"
-ipykernel = "*"
 
 [tool.pixi.environments]
 default = { features = [] }
