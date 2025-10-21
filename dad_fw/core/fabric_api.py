@@ -8,6 +8,7 @@ import base64
 from typing import Dict, Any, Optional
 
 from msfabricpysdkcore import FabricClientCore
+from .fabric_auth import FabricAuth
 
 
 
@@ -37,7 +38,7 @@ class FabricAPI:
         if not ipynb_path.exists():
             raise FileNotFoundError(f"Notebook file not found: {ipynb_path}")
         
-        fc = FabricClientCore()
+        fc = FabricAuth.create_fabric_client()
         
         # Read the .ipynb file
         with open(ipynb_path, 'r', encoding='utf-8') as file:
@@ -89,7 +90,7 @@ class FabricAPI:
         Raises:
             ImportError: If Fabric SDK is not available
         """
-        fc = FabricClientCore()
+        fc = FabricAuth.create_fabric_client()
         
         # Convert to Base64
         content_base64 = base64.b64encode(fabric_python_content.encode('utf-8')).decode('utf-8')
@@ -164,7 +165,7 @@ class FabricAPI:
         Returns:
             Dictionary containing notebook item info if found, None otherwise
         """
-        fc = FabricClientCore()
+        fc = FabricAuth.create_fabric_client()
         
         # List all items in the workspace
         items = fc.list_items(workspace_id=workspace_id)
@@ -194,7 +195,7 @@ class FabricAPI:
         Returns:
             Dictionary containing notebook item info if found, None otherwise
         """
-        fc = FabricClientCore()
+        fc = FabricAuth.create_fabric_client()
         
         try:
             item = fc.get_item(workspace_id=workspace_id, item_id=notebook_id)
@@ -225,7 +226,7 @@ class FabricAPI:
         Returns:
             True if update successful, False otherwise
         """
-        fc = FabricClientCore()
+        fc = FabricAuth.create_fabric_client()
         
         try:
             # Convert to Base64
@@ -299,7 +300,7 @@ class FabricAPI:
         """
         import time
         
-        fc = FabricClientCore()
+        fc = FabricAuth.create_fabric_client()
         
         print(f"Starting execution of notebook ID: {notebook_id}")
         start_time = time.time()
@@ -383,7 +384,7 @@ class FabricAPI:
         
         import time
         
-        fc = FabricClientCore()
+        fc = FabricAuth.create_fabric_client()
         
         print(f"Starting execution of '{notebook_name}'...")
         start_time = time.time()
@@ -457,7 +458,7 @@ class FabricAPI:
         Returns:
             List of data agent items
         """
-        fc = FabricClientCore()
+        fc = FabricAuth.create_fabric_client()
         
         try:
             # Note: This assumes there's a method to list AI skills/agents

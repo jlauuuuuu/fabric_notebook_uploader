@@ -403,3 +403,38 @@ def list_cmd(
     except Exception as e:
         rprint(f"[red]Failed to list agents: {e}[/red]")
         sys.exit(1)
+
+@app.command()
+def auth_test():
+    """Test authentication setup for Fabric API."""
+    from ..core.fabric_auth import FabricAuth
+    
+    rprint("\n[bold blue]Testing Fabric Authentication[/bold blue]")
+    
+    try:
+        # Test authentication
+        result = FabricAuth.test_authentication()
+        
+        if result["success"]:
+            rprint(f"[green]✅ Authentication successful![/green]")
+            rprint(f"[cyan]Method: {result['method']}[/cyan]")
+            if "token_expires" in result:
+                import datetime
+                expires = datetime.datetime.fromtimestamp(result["token_expires"])
+                rprint(f"[dim]Token expires: {expires}[/dim]")
+        else:
+            rprint(f"[red]❌ Authentication failed[/red]")
+            rprint(f"[red]Error: {result['error']}[/red]")
+            sys.exit(1)
+            
+        # Test Fabric client creation
+        rprint("\n[cyan]Testing Fabric client creation...[/cyan]")
+        client = FabricAuth.create_fabric_client()
+        rprint("[green]✅ Fabric client created successfully![/green]")
+        
+        rprint(f"\n[bold green]Authentication is working correctly![/bold green]")
+        rprint("[dim]You can now use compile, upload, and run commands[/dim]")
+        
+    except Exception as e:
+        rprint(f"[red]❌ Authentication test failed: {e}[/red]")
+        sys.exit(1)
