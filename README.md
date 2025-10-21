@@ -32,6 +32,8 @@ python -m venv .venv
 
 # Install from GitHub
 pip install git+https://github.com/jlauuuuuu/fabric_notebook_uploader.git
+# or
+pixi add --pypi "dad-fw @ git+https://github.com/jlauuuuuu/fabric_notebook_uploader.git"
 
 # Verify installation
 dad-fw --help
