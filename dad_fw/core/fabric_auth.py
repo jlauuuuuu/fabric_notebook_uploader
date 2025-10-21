@@ -1,58 +1,47 @@
 """
 Authentication utilities for Microsoft Fabric API operations.
-Optimized for Azure DevOps pipelines using AzureCLI@2 task.
+Optimized for Azure DevOps pipelines using AzureCLI@2 task with Service Principal.
 """
 import os
-from typing import Optional
-from azure.identity import AzureCliCredential, DefaultAzureCredential, InteractiveBrowserCredential
+import json
+import subprocess
+from typing import Optional, Dict, Any
 
 
 class FabricAuth:
     """
-    Simplified authentication utility for Fabric API.
-    Designed to work seamlessly with Azure DevOps AzureCLI@2 task.
+    Authentication utility for Fabric API that works with Azure DevOps AzureCLI@2 task.
+    Supports both service principal and Azure CLI authentication methods.
     """
     
     @staticmethod
-    def get_credential():
+    def get_azure_cli_info() -> Optional[Dict[str, Any]]:
         """
-        Get Azure credential with priority for Azure CLI (from AzureCLI@2 task).
-        
-        Priority order:
-        1. Azure CLI credential (from AzureCLI@2 task in Azure DevOps)
-        2. Default Azure credential (fallback)
-        3. Interactive browser (local development only)
+        Get Azure CLI account information to detect service principal context.
         
         Returns:
-            Azure credential object suitable for Fabric authentication
+            Dictionary with Azure CLI account info or None if not available
         """
-        # Method 1: Azure CLI (from AzureCLI@2 task)
         try:
-            credential = AzureCliCredential()
-            # Test if Azure CLI is available and authenticated
-            credential.get_token("https://analysis.windows.net/powerbi/api/.default")
-            print("🔐 Using Azure CLI authentication (from AzureCLI@2 task)")
-            return credential
-        except Exception as e:
-            print(f"Azure CLI auth not available: {e}")
-        
-        # Method 2: Default Azure Credential
-        try:
-            credential = DefaultAzureCredential()
-            credential.get_token("https://analysis.windows.net/powerbi/api/.default")
-            print("🔐 Using Default Azure Credential")
-            return credential
-        except Exception as e:
-            print(f"Default credential not available: {e}")
-        
-        # Method 3: Interactive Browser (local development only)
-        print("🔐 Falling back to Interactive Browser authentication")
-        return InteractiveBrowserCredential()
+            result = subprocess.run(
+                ['az', 'account', 'show'],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            return json.loads(result.stdout)
+        except (subprocess.CalledProcessError, json.JSONDecodeError, FileNotFoundError):
+            return None
     
     @staticmethod
     def create_fabric_client():
         """
         Create a FabricClientCore instance with appropriate authentication.
+        
+        Handles multiple authentication scenarios:
+        1. Azure DevOps AzureCLI@2 task with service principal
+        2. Service Principal with environment variables
+        3. Azure CLI authentication (local development)
         
         Returns:
             Authenticated FabricClientCore instance
@@ -60,17 +49,52 @@ class FabricAuth:
         try:
             from msfabricpysdkcore import FabricClientCore
             
-            credential = FabricAuth.get_credential()
+            # Method 1: Check for explicit service principal environment variables
+            client_id = os.getenv("FABRIC_CLIENT_ID") or os.getenv("AZURE_CLIENT_ID")
+            client_secret = os.getenv("FABRIC_CLIENT_SECRET") or os.getenv("AZURE_CLIENT_SECRET") 
+            tenant_id = os.getenv("FABRIC_TENANT_ID") or os.getenv("AZURE_TENANT_ID")
             
-            # Create Fabric client with credential
-            fc = FabricClientCore(credential=credential)
-            print("✅ Fabric client created successfully")
+            if client_id and client_secret and tenant_id:
+                print("Using Service Principal authentication (environment variables)")
+                fc = FabricClientCore(
+                    tenant_id=tenant_id,
+                    client_id=client_id,
+                    client_secret=client_secret
+                )
+                print("Fabric client created successfully")
+                return fc
             
+            # Method 2: Check Azure CLI context (AzureCLI@2 task scenario)
+            cli_info = FabricAuth.get_azure_cli_info()
+            if cli_info:
+                user_type = cli_info.get('user', {}).get('type')
+                tenant_id = cli_info.get('tenantId')
+                
+                if user_type == 'servicePrincipal' and tenant_id:
+                    print(f"Using Azure CLI Service Principal authentication")
+                    print(f"Tenant ID: {tenant_id}")
+                    print(f"Subscription: {cli_info.get('name', 'Unknown')}")
+                    
+                    # For service principal via Azure CLI, we can use FabricClientCore()
+                    # It will automatically use the Azure CLI context
+                    fc = FabricClientCore()
+                    print("Fabric client created successfully")
+                    return fc
+                else:
+                    print("Using Azure CLI authentication (user account)")
+                    fc = FabricClientCore()
+                    print("Fabric client created successfully")
+                    return fc
+            
+            # Method 3: Fallback to default Azure CLI authentication
+            print("Using Azure CLI authentication (fallback)")
+            fc = FabricClientCore()
+            print("Fabric client created successfully")
             return fc
             
-        except ImportError:
+        except ImportError as e:
             raise ImportError(
-                "Microsoft Fabric Python SDK is required. "
+                f"Microsoft Fabric Python SDK is required: {e}. "
                 "Install with: pip install msfabricpysdkcore"
             )
         except Exception as e:
@@ -79,7 +103,7 @@ class FabricAuth:
     @staticmethod
     def test_authentication():
         """
-        Test the current authentication setup.
+        Test the current authentication setup by creating a client and checking context.
         
         Returns:
             Dictionary with authentication test results
@@ -87,24 +111,36 @@ class FabricAuth:
         result = {
             "success": False,
             "method": "unknown",
-            "error": None
+            "error": None,
+            "cli_info": None
         }
         
         try:
-            credential = FabricAuth.get_credential()
+            # Get Azure CLI context
+            cli_info = FabricAuth.get_azure_cli_info()
+            if cli_info:
+                result["cli_info"] = {
+                    "tenant_id": cli_info.get('tenantId'),
+                    "subscription": cli_info.get('name'),
+                    "user_type": cli_info.get('user', {}).get('type'),
+                    "environment": cli_info.get('environmentName')
+                }
             
-            # Try to get a token to test authentication
-            token = credential.get_token("https://analysis.windows.net/powerbi/api/.default")
+            # Determine authentication method
+            client_id = os.getenv("FABRIC_CLIENT_ID") or os.getenv("AZURE_CLIENT_ID")
+            client_secret = os.getenv("FABRIC_CLIENT_SECRET") or os.getenv("AZURE_CLIENT_SECRET") 
+            tenant_id = os.getenv("FABRIC_TENANT_ID") or os.getenv("AZURE_TENANT_ID")
             
-            if isinstance(credential, AzureCliCredential):
-                result["method"] = "azure_cli"
-            elif isinstance(credential, DefaultAzureCredential):
-                result["method"] = "default_credential"
+            if client_id and client_secret and tenant_id:
+                result["method"] = "service_principal_env_vars"
+            elif cli_info and cli_info.get('user', {}).get('type') == 'servicePrincipal':
+                result["method"] = "azure_cli_service_principal"
             else:
-                result["method"] = "interactive_browser"
+                result["method"] = "azure_cli_user"
             
+            # Try to create client
+            fc = FabricAuth.create_fabric_client()
             result["success"] = True
-            result["token_expires"] = token.expires_on
             
         except Exception as e:
             result["error"] = str(e)

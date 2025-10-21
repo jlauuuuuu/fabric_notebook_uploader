@@ -416,21 +416,34 @@ def auth_test():
         result = FabricAuth.test_authentication()
         
         if result["success"]:
-            rprint(f"[green]✅ Authentication successful![/green]")
+            rprint(f"[green]Authentication successful![/green]")
             rprint(f"[cyan]Method: {result['method']}[/cyan]")
+            
+            # Show Azure CLI context if available
+            if result.get("cli_info"):
+                cli_info = result["cli_info"]
+                rprint(f"\n[bold]Azure CLI Context:[/bold]")
+                rprint(f"[cyan]Tenant ID: {cli_info.get('tenant_id', 'Unknown')}[/cyan]")
+                rprint(f"[cyan]Subscription: {cli_info.get('subscription', 'Unknown')}[/cyan]")
+                rprint(f"[cyan]User Type: {cli_info.get('user_type', 'Unknown')}[/cyan]")
+                rprint(f"[cyan]Environment: {cli_info.get('environment', 'Unknown')}[/cyan]")
+                
+                if cli_info.get('user_type') == 'servicePrincipal':
+                    rprint(f"[green]Service Principal detected from Azure DevOps AzureCLI@2 task[/green]")
+                    
             if "token_expires" in result:
                 import datetime
                 expires = datetime.datetime.fromtimestamp(result["token_expires"])
                 rprint(f"[dim]Token expires: {expires}[/dim]")
         else:
-            rprint(f"[red]❌ Authentication failed[/red]")
+            rprint(f"[red]Authentication failed[/red]")
             rprint(f"[red]Error: {result['error']}[/red]")
             sys.exit(1)
             
         # Test Fabric client creation
         rprint("\n[cyan]Testing Fabric client creation...[/cyan]")
         client = FabricAuth.create_fabric_client()
-        rprint("[green]✅ Fabric client created successfully![/green]")
+        rprint("[green]Fabric client created successfully![/green]")
         
         rprint(f"\n[bold green]Authentication is working correctly![/bold green]")
         rprint("[dim]You can now use compile, upload, and run commands[/dim]")
