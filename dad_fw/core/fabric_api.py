@@ -169,10 +169,10 @@ class FabricAPI:
         # List all items in the workspace
         items = fc.list_items(workspace_id=workspace_id)
         
-        # Filter for notebooks with matching name
+        # Filter for notebooks with matching name (case-insensitive)
         for item in items:
             if (hasattr(item, 'type') and item.type == 'Notebook' and 
-                hasattr(item, 'display_name') and item.display_name == notebook_name):
+                hasattr(item, 'display_name') and item.display_name.lower() == notebook_name.lower()):
                 return {
                     'id': item.id,
                     'display_name': item.display_name,

@@ -167,37 +167,99 @@ def upload(
         if notebook_name:
             rprint("[yellow]Warning: --custom-notebook-name is ignored when using --all-agents[/yellow]")
             
-        rprint(f"\n[bold blue]Uploading All Agents in Workspace[/bold blue]")
-        try:
-            results = FrameworkUtils.upload_all_agents(
-                base_dir=base_dir,
-                workspace_id=workspace_id,
-                use_ipynb=use_ipynb,
-                force_update=update
-            )
+        # When using --all-agents, automatically enable force_update to avoid prompts
+        force_update_all = True
+        if not update:
+            rprint("[cyan]Note: --all-agents automatically enables update mode to avoid prompts[/cyan]")
             
-            # Summary
-            successful = [r for r in results if r['success']]
-            failed = [r for r in results if not r['success']]
-            updated = [r for r in successful if r.get('updated')]
-            new_uploads = [r for r in successful if not r.get('updated')]
+        # Get all agents and iterate through them
+        agents = FrameworkUtils.get_all_agents(base_dir)
+        if not agents:
+            rprint(f"[yellow]No agents found in {base_dir}[/yellow]")
+            return
             
-            rprint(f"\n[bold]Upload Summary:[/bold]")
-            rprint(f"[green]Successful: {len(successful)} ({len(new_uploads)} new, {len(updated)} updated)[/green]")
-            if failed:
-                rprint(f"[red]Failed: {len(failed)}[/red]")
-            
-            if failed:
-                rprint(f"\n[red]Failed agents:[/red]")
-                for result in failed:
-                    rprint(f"  - {result['agent']}: {result['error']}")
-                sys.exit(1)
-            
-            rprint(f"\n[green]All agents uploaded successfully![/green]")
-            
-        except Exception as e:
-            rprint(f"[red]Failed to upload agents: {e}[/red]")
+        rprint(f"[cyan]Found {len(agents)} agents to upload[/cyan]")
+        
+        # Track results for summary
+        results = []
+        
+        # Upload each agent using the same logic as single agent uploads
+        for agent in agents:
+            try:
+                rprint(f"\n[bold blue]Uploading Data Agent: {agent.name}[/bold blue]")
+                agent.load_config()
+
+                # Show upload details
+                display_name = agent.name
+                if workspace_id:
+                    rprint(f"[cyan]Using workspace ID: {workspace_id}[/cyan]")
+                else:
+                    rprint("[cyan]Using workspace ID from agent config[/cyan]")
+                
+                rprint(f"[cyan]Notebook name: {display_name}[/cyan]")
+                
+                if use_ipynb:
+                    rprint("[cyan]Uploading as raw .ipynb file...[/cyan]")
+                else:
+                    rprint("[cyan]Uploading as Fabric Python format...[/cyan]")
+                    # Check if auto-compile is needed
+                    fabric_file = agent.get_fabric_python_file()
+                    if not fabric_file.exists():
+                        rprint("[cyan]Auto-compiling notebook...[/cyan]")
+                
+                # Upload to Fabric (override workspace_id if provided via -w flag)
+                result = agent.upload_to_fabric(
+                    workspace_id=workspace_id,  # This will override config if provided
+                    notebook_name=None,  # Use default agent name
+                    use_ipynb=use_ipynb,
+                    force_update=force_update_all,
+                    ask_before_update=False  # Never ask in --all-agents mode
+                )
+                
+                # Show success message
+                if result and result.get('updated'):
+                    rprint(f"[green]Successfully updated existing notebook in Fabric![/green]")
+                else:
+                    rprint(f"[green]Successfully uploaded new notebook to Fabric![/green]")
+                
+                rprint(f"[green]Notebook Name: {display_name}[/green]")
+                
+                # Show additional details if available
+                if result and isinstance(result, dict) and "id" in result:
+                    rprint(f"[dim]Notebook ID: {result['id']}[/dim]")
+
+                rprint("[dim]Updated agent config with upload info[/dim]")
+                
+                # Track success
+                results.append({
+                    'agent': agent.name,
+                    'success': True,
+                    'updated': result.get('updated', False) if result else False
+                })
+                
+            except Exception as e:
+                rprint(f"[red]Failed to upload agent: {e}[/red]")
+                results.append({
+                    'agent': agent.name,
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        # Show summary
+        successful = [r for r in results if r['success']]
+        failed = [r for r in results if not r['success']]
+        updated = [r for r in successful if r.get('updated')]
+        new_uploads = [r for r in successful if not r.get('updated')]
+        
+        rprint(f"\n[bold]Upload Summary:[/bold]")
+        rprint(f"[green]Successful: {len(successful)} ({len(new_uploads)} new, {len(updated)} updated)[/green]")
+        if failed:
+            rprint(f"[red]Failed: {len(failed)}[/red]")
+            for result in failed:
+                rprint(f"  - {result['agent']}: {result['error']}")
             sys.exit(1)
+        
+        rprint(f"[green]All agents uploaded successfully![/green]")
     else:
         if not name:
             rprint("[red]Agent name is required when not using --all-agents flag[/red]")
@@ -229,9 +291,9 @@ def upload(
                 if not fabric_file.exists():
                     rprint("[cyan]Auto-compiling notebook...[/cyan]")
             
-            # Use the agent's upload method with update support
+            # Use the agent's upload method with update support (override workspace_id if provided via -w flag)
             result = agent.upload_to_fabric(
-                workspace_id=workspace_id,
+                workspace_id=workspace_id,  # This will override config if provided
                 notebook_name=notebook_name,
                 use_ipynb=use_ipynb,
                 force_update=update,
@@ -266,42 +328,119 @@ def run(
     base_dir = Path.cwd()
     
     if all_agents:
-        rprint(f"\n[bold blue]Running All Agents in Workspace[/bold blue]")
-        try:
-            results = FrameworkUtils.run_all_agents(
-                base_dir=base_dir,
-                workspace_id=workspace_id
-            )
+        # Get all agents and iterate through them
+        agents = FrameworkUtils.get_all_agents(base_dir)
+        if not agents:
+            rprint(f"[yellow]No agents found in {base_dir}[/yellow]")
+            return
             
-            # Summary
-            successful = [r for r in results if r['success']]
-            failed = [r for r in results if not r['success']]
-            agents_created = [r for r in successful if r.get('agent_found')]
-            
-            rprint(f"\n[bold]Run Summary:[/bold]")
-            rprint(f"[green]Successful: {len(successful)}[/green]")
-            rprint(f"[green]Data Agents Created: {len(agents_created)}[/green]")
-            if failed:
-                rprint(f"[red]Failed: {len(failed)}[/red]")
-            
-            if failed:
-                rprint(f"\n[red]Failed agents:[/red]")
-                for result in failed:
-                    rprint(f"  - {result['agent']}: {result['error']}")
-                sys.exit(1)
-            
-            # Show created agents
-            if agents_created:
-                rprint(f"\n[bold green]Data Agents Created:[/bold green]")
-                for result in agents_created:
+        rprint(f"[cyan]Found {len(agents)} agents to run[/cyan]")
+        
+        # Track results for summary
+        results = []
+        
+        # Run each agent using the same logic as single agent runs
+        for agent in agents:
+            try:
+                rprint(f"\n[bold blue]Running Data Agent: {agent.name}[/bold blue]")
+                
+                # Load config to show execution details
+                config = agent.load_config()
+                
+                # Show execution details
+                if workspace_id:
+                    rprint(f"[cyan]Using workspace ID: {workspace_id}[/cyan]")
+                else:
+                    rprint("[cyan]Using workspace ID from agent config[/cyan]")
+                
+                notebook_name = config.get("notebook_name")
+                notebook_id = config.get("notebook_id")
+                
+                if notebook_name:
+                    rprint(f"[cyan]Notebook: {notebook_name}[/cyan]")
+                elif notebook_id:
+                    rprint(f"[cyan]Notebook ID: {notebook_id}[/cyan]")
+                else:
+                    rprint("[yellow]No notebook info found. Make sure the agent has been uploaded first.[/yellow]")
+                    results.append({
+                        'agent': agent.name,
+                        'success': False,
+                        'error': 'Agent not uploaded yet. Upload first before running.'
+                    })
+                    continue
+                
+                rprint("[cyan]Starting execution...[/cyan]")
+                
+                # Use the agent's run method (override workspace_id if provided via -w flag)
+                result = agent.run_in_fabric(workspace_id=workspace_id)  # This will override config if provided
+                
+                # Show execution summary
+                rprint(f"\n[bold]Execution Summary:[/bold]")
+                rprint(f"[green]Status: {result['status']}[/green]" if result['success'] else f"[red]Status: {result['status']}[/red]")
+                rprint(f"Runtime: {result['total_runtime_str']}")
+                rprint(f"[dim]Job ID: {result['job_id']}[/dim]")
+                
+                # Show data agent info if found
+                if result.get('agent_found'):
+                    rprint(f"\n[bold green]Data Agent Created:[/bold green]")
+                    rprint(f"Agent Name: {result['agent_display_name']}")
+                    rprint(f"Agent ID: {result['agent_id']}")
+                    rprint(f"[green]Agent URL: {result['agent_url']}[/green]")
+                elif result['success']:
+                    rprint(f"\n[yellow]Data agent may have been created, but could not be found automatically.[/yellow]")
+                    rprint(f"[dim]Check the Fabric workspace for the new agent.[/dim]")
+                
+                if result['success']:
+                    rprint(f"[green]Data agent '{agent.name}' executed successfully![/green]")
+                    rprint("[dim]Your data agent should now be available in Fabric[/dim]")
+                else:
+                    rprint(f"[red]Execution failed for '{agent.name}'[/red]")
+                    rprint("[dim]Check the notebook in Fabric workspace for error details[/dim]")
+                
+                # Track results
+                results.append({
+                    'agent': agent.name,
+                    'success': result['success'],
+                    'agent_found': result.get('agent_found', False),
+                    'agent_display_name': result.get('agent_display_name'),
+                    'agent_url': result.get('agent_url'),
+                    'error': None if result['success'] else result['status']
+                })
+                
+            except Exception as e:
+                rprint(f"[red]Failed to run agent: {e}[/red]")
+                results.append({
+                    'agent': agent.name,
+                    'success': False,
+                    'error': str(e)
+                })
+        
+        # Show summary
+        successful = [r for r in results if r['success']]
+        failed = [r for r in results if not r['success']]
+        agents_created = [r for r in successful if r.get('agent_found')]
+        
+        rprint(f"\n[bold]Run Summary:[/bold]")
+        rprint(f"[green]Successful: {len(successful)}[/green]")
+        rprint(f"[green]Data Agents Created: {len(agents_created)}[/green]")
+        if failed:
+            rprint(f"[red]Failed: {len(failed)}[/red]")
+            for result in failed:
+                rprint(f"  - {result['agent']}: {result['error']}")
+        
+        # Show created agents
+        if agents_created:
+            rprint(f"\n[bold green]Data Agents Created:[/bold green]")
+            for result in agents_created:
+                if result.get('agent_display_name') and result.get('agent_url'):
                     rprint(f"  - {result['agent_display_name']}: {result['agent_url']}")
-            
+        
+        if failed:
+            rprint(f"\n[yellow]Some agents failed. Check individual results above.[/yellow]")
+            sys.exit(1)
+        else:
             rprint(f"\n[green]All agents executed successfully![/green]")
             rprint("[dim]Your data agents should now be available in Fabric[/dim]")
-            
-        except Exception as e:
-            rprint(f"[red]Failed to run agents: {e}[/red]")
-            sys.exit(1)
     else:
         if not name:
             rprint("[red]Agent name is required when not using --all-agents flag[/red]")
@@ -337,8 +476,8 @@ def run(
             
             rprint("[cyan]Starting execution...[/cyan]")
             
-            # Use the agent's run method
-            result = agent.run_in_fabric(workspace_id=workspace_id)
+            # Use the agent's run method (override workspace_id if provided via -w flag)
+            result = agent.run_in_fabric(workspace_id=workspace_id)  # This will override config if provided
             
             # Show execution summary
             rprint(f"\n[bold]Execution Summary:[/bold]")
@@ -402,52 +541,4 @@ def list_cmd(
             
     except Exception as e:
         rprint(f"[red]Failed to list agents: {e}[/red]")
-        sys.exit(1)
-
-@app.command()
-def auth_test():
-    """Test authentication setup for Fabric API."""
-    from ..core.fabric_auth import FabricAuth
-    
-    rprint("\n[bold blue]Testing Fabric Authentication[/bold blue]")
-    
-    try:
-        # Test authentication
-        result = FabricAuth.test_authentication()
-        
-        if result["success"]:
-            rprint(f"[green]Authentication successful![/green]")
-            rprint(f"[cyan]Method: {result['method']}[/cyan]")
-            
-            # Show Azure CLI context if available
-            if result.get("cli_info"):
-                cli_info = result["cli_info"]
-                rprint(f"\n[bold]Azure CLI Context:[/bold]")
-                rprint(f"[cyan]Tenant ID: {cli_info.get('tenant_id', 'Unknown')}[/cyan]")
-                rprint(f"[cyan]Subscription: {cli_info.get('subscription', 'Unknown')}[/cyan]")
-                rprint(f"[cyan]User Type: {cli_info.get('user_type', 'Unknown')}[/cyan]")
-                rprint(f"[cyan]Environment: {cli_info.get('environment', 'Unknown')}[/cyan]")
-                
-                if cli_info.get('user_type') == 'servicePrincipal':
-                    rprint(f"[green]Service Principal detected from Azure DevOps AzureCLI@2 task[/green]")
-                    
-            if "token_expires" in result:
-                import datetime
-                expires = datetime.datetime.fromtimestamp(result["token_expires"])
-                rprint(f"[dim]Token expires: {expires}[/dim]")
-        else:
-            rprint(f"[red]Authentication failed[/red]")
-            rprint(f"[red]Error: {result['error']}[/red]")
-            sys.exit(1)
-            
-        # Test Fabric client creation
-        rprint("\n[cyan]Testing Fabric client creation...[/cyan]")
-        client = FabricAuth.create_fabric_client()
-        rprint("[green]Fabric client created successfully![/green]")
-        
-        rprint(f"\n[bold green]Authentication is working correctly![/bold green]")
-        rprint("[dim]You can now use compile, upload, and run commands[/dim]")
-        
-    except Exception as e:
-        rprint(f"[red]❌ Authentication test failed: {e}[/red]")
         sys.exit(1)
