@@ -9,6 +9,6 @@ __version__ = "2.0.0"
 __author__ = "DAD-FW Contributors" 
 __description__ = "Data Agent Development Framework - Object-Oriented Version"
 
-from .core import FrameworkUtils, DataAgent
+from .core import FrameworkUtils, DataAgent, FabricDataAgentClient
 
-__all__ = ['FrameworkUtils', 'DataAgent', ]
+__all__ = ['FrameworkUtils', 'DataAgent', 'FabricDataAgentClient']

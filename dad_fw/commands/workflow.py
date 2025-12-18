@@ -13,6 +13,7 @@ from pathlib import Path
 from datetime import datetime
 
 from dad_fw.core.framework_utils import FrameworkUtils
+from dad_fw.core.fabric_api import FabricAPI
 
 # Add parent directories to path
 current_dir = Path(__file__).parent.parent.parent
@@ -150,6 +151,99 @@ def compile(
         except Exception as e:
             rprint(f"[red]Failed to compile agent: {e}[/red]")
             sys.exit(1)
+
+@app.command()
+def download(
+    agent_name: str = typer.Argument(..., help="Agent name (notebook with this name will be downloaded and replace agent's notebook)"),
+    workspace_id: Optional[str] = typer.Option(None, "--workspace-id", "-w", help="Fabric workspace ID (uses agent config if not provided)"),
+    notebook_id: Optional[str] = typer.Option(None, "--notebook-id", "-i", help="Notebook ID to download (if not provided, uses agent_name as notebook name)"),
+    output_dir: Optional[str] = typer.Option(None, "--output-dir", "-o", help="Output directory (if provided, downloads here instead of replacing agent notebook)"),
+    timeout: int = typer.Option(300, "--timeout", "-t", help="Timeout in seconds"),
+    no_ssl_verify: bool = typer.Option(True, "--no-ssl-verify", help="Disable SSL verification (default: True)"),
+):
+    """Download a notebook from Microsoft Fabric and replace agent's notebook file."""
+    base_dir = Path.cwd()
+    
+    rprint(f"\n[bold blue]Downloading Notebook from Fabric[/bold blue]")
+    rprint(f"[cyan]Agent Name: {agent_name}[/cyan]")
+    
+    # Get agent and load config
+    try:
+        agent = FrameworkUtils.get_agent(agent_name, base_dir)
+        if not agent:
+            rprint(f"[red]Agent '{agent_name}' not found in {base_dir}[/red]")
+            sys.exit(1)
+        
+        config = agent.load_config()
+    except Exception as e:
+        rprint(f"[red]Failed to load agent: {e}[/red]")
+        sys.exit(1)
+    
+    # Determine workspace ID
+    if workspace_id:
+        rprint(f"[cyan]Using workspace ID: {workspace_id}[/cyan]")
+    else:
+        workspace_id = config.get("workspace_id")
+        if not workspace_id:
+            rprint(f"[red]No workspace_id found in agent config. Please provide --workspace-id[/red]")
+            sys.exit(1)
+        rprint(f"[cyan]Using workspace ID from config: {workspace_id}[/cyan]")
+    
+    # Determine what to download
+    if notebook_id:
+        rprint(f"[cyan]Notebook ID: {notebook_id}[/cyan]")
+        notebook_search = notebook_id
+        use_id = True
+    else:
+        rprint(f"[cyan]Notebook Name: {agent_name}[/cyan]")
+        rprint(f"[dim]Searching for notebook with same name as agent[/dim]")
+        notebook_search = agent_name
+        use_id = False
+    
+    # Determine where to write
+    if output_dir:
+        rprint(f"[cyan]Output Directory: {output_dir}[/cyan]")
+        target_agent = None
+    else:
+        rprint(f"[dim]Will replace agent's notebook file[/dim]")
+        target_agent = agent_name
+    
+    try:
+        # Download the notebook
+        if use_id:
+            result = FabricAPI.download_notebook_by_id(
+                workspace_id=workspace_id,
+                notebook_id=notebook_id,
+                data_agent_name=target_agent,
+                output_dir=output_dir if output_dir else "./downloaded_notebooks",
+                timeout=timeout,
+                verify_ssl=not no_ssl_verify
+            )
+        else:
+            result = FabricAPI.download_notebook_by_name(
+                workspace_id=workspace_id,
+                notebook_name=notebook_search,
+                data_agent_name=target_agent,
+                output_dir=output_dir if output_dir else "./downloaded_notebooks",
+                timeout=timeout,
+                verify_ssl=not no_ssl_verify
+            )
+        
+        # Check result
+        if result['success']:
+            rprint(f"\n[green]✓ Successfully downloaded notebook![/green]")
+            rprint(f"[green]Files written:[/green]")
+            for file in result['written_files']:
+                rprint(f"  • {file}")
+            rprint(f"[dim]Time elapsed: {result['elapsed_time']:.1f}s[/dim]")
+        else:
+            rprint(f"\n[red]✗ Failed to download notebook[/red]")
+            rprint(f"[red]Error: {result.get('error', 'Unknown error')}[/red]")
+            sys.exit(1)
+            
+    except Exception as e:
+        rprint(f"[red]Failed to download notebook: {e}[/red]")
+        sys.exit(1)
 
 @app.command()
 def upload(
@@ -317,6 +411,8 @@ def upload(
         except Exception as e:
             rprint(f"[red]Failed to upload agent: {e}[/red]")
             sys.exit(1)
+
+
 
 @app.command()
 def run(

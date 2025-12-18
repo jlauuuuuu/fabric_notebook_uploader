@@ -27,6 +27,7 @@ app.command("init", help="Initialize a new data agent")(workflow.init)
 app.command("list", help="List all data agents")(workflow.list_cmd)
 app.command("compile", help="Compile a data agent")(workflow.compile)
 app.command("upload", help="Upload a data agent to Fabric")(workflow.upload)
+app.command("download", help="Download a data agent from existing Fabric Notebook")(workflow.download)
 app.command("run", help="Execute a data agent")(workflow.run)
 
 # Additional CLI options

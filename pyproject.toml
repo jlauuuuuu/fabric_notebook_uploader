@@ -72,6 +72,7 @@ platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 [tool.pixi.dependencies]
 python = ">=3.11,<3.13"
 pip = "*"
+ipykernel = ">=7.1.0,<8"
 
 [tool.pixi.pypi-dependencies]
 dad-fw = { path = ".", editable = true }

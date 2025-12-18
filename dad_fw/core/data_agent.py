@@ -277,23 +277,6 @@ class DataAgent:
     def upload_to_fabric(self, workspace_id: Optional[str] = None, notebook_name: Optional[str] = None, 
                         use_ipynb: bool = False, force_update: bool = False, 
                         ask_before_update: bool = True) -> Dict[str, Any]:
-        """
-        Upload this agent's notebook to Microsoft Fabric, with support for updating existing notebooks.
-        
-        Args:
-            workspace_id: Fabric workspace ID (uses config if not provided)
-            notebook_name: Display name for notebook in Fabric (defaults to agent name)
-            use_ipynb: If True, uploads raw .ipynb file; if False, uploads Fabric Python format
-            force_update: If True, updates existing notebook without asking
-            ask_before_update: If True, asks user before updating (only applies if force_update is False)
-            
-        Returns:
-            Dictionary containing upload/update response from Fabric API
-            
-        Raises:
-            ValueError: If workspace_id is invalid or missing
-            FileNotFoundError: If required files don't exist
-        """
         # Import here to avoid circular imports
         from dad_fw.core.fabric_api import FabricAPI
         
@@ -410,19 +393,6 @@ class DataAgent:
         return result
     
     def run_in_fabric(self, workspace_id: Optional[str] = None) -> Dict[str, Any]:
-        """
-        Execute this agent's notebook in Microsoft Fabric and monitor completion.
-        
-        Args:
-            workspace_id: Fabric workspace ID (uses config if not provided)
-            
-        Returns:
-            Dictionary containing execution results and agent info
-            
-        Raises:
-            ValueError: If workspace_id is invalid, missing, or notebook not found
-            FileNotFoundError: If config file doesn't exist
-        """
         # Import here to avoid circular imports
         from dad_fw.core.fabric_api import FabricAPI
         

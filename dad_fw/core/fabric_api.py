@@ -1,10 +1,9 @@
-"""
-Fabric API utilities for uploading notebooks and interacting with Microsoft Fabric.
-Stateless utility class following the same pattern as FrameworkUtils.
-"""
 from pathlib import Path
 import json
 import base64
+import subprocess
+import time
+import requests
 from typing import Dict, Any, Optional
 
 from msfabricpysdkcore import FabricClientCore
@@ -12,27 +11,8 @@ from msfabricpysdkcore import FabricClientCore
 
 
 class FabricAPI:
-    """
-    Stateless utility class for Microsoft Fabric API operations.
-    All methods are static to maintain consistency with FrameworkUtils pattern.
-    """
     @staticmethod
     def create_notebook_from_ipynb(workspace_id: str, ipynb_file_path: str, notebook_name: str) -> Dict[str, Any]:
-        """
-        Create a Fabric notebook directly from a .ipynb file (raw upload).
-        
-        Args:
-            workspace_id: The Fabric workspace ID
-            ipynb_file_path: Path to the .ipynb file
-            notebook_name: Display name for the notebook in Fabric
-            
-        Returns:
-            Dictionary containing notebook creation response
-            
-        Raises:
-            ImportError: If Fabric SDK is not available
-            FileNotFoundError: If ipynb file doesn't exist
-        """
         ipynb_path = Path(ipynb_file_path)
         if not ipynb_path.exists():
             raise FileNotFoundError(f"Notebook file not found: {ipynb_path}")
@@ -75,20 +55,6 @@ class FabricAPI:
     
     @staticmethod
     def create_notebook_from_fabric_python(workspace_id: str, fabric_python_content: str, notebook_name: str) -> Dict[str, Any]:
-        """
-        Create a Fabric notebook from Fabric Python format content.
-        
-        Args:
-            workspace_id: The Fabric workspace ID
-            fabric_python_content: The Fabric Python format content as string
-            notebook_name: Display name for the notebook in Fabric
-            
-        Returns:
-            Dictionary containing notebook creation response
-            
-        Raises:
-            ImportError: If Fabric SDK is not available
-        """
         fc = FabricClientCore()
         
         # Convert to Base64
@@ -123,21 +89,6 @@ class FabricAPI:
     
     @staticmethod
     def create_notebook_from_fabric_python_file(workspace_id: str, fabric_python_file_path: str, notebook_name: str) -> Dict[str, Any]:
-        """
-        Create a Fabric notebook from a Fabric Python format file.
-        
-        Args:
-            workspace_id: The Fabric workspace ID
-            fabric_python_file_path: Path to the Fabric Python format file
-            notebook_name: Display name for the notebook in Fabric
-            
-        Returns:
-            Dictionary containing notebook creation response
-            
-        Raises:
-            ImportError: If Fabric SDK is not available
-            FileNotFoundError: If Fabric Python file doesn't exist
-        """
         fabric_path = Path(fabric_python_file_path)
         if not fabric_path.exists():
             raise FileNotFoundError(f"Fabric Python file not found: {fabric_path}")
@@ -154,16 +105,6 @@ class FabricAPI:
     
     @staticmethod
     def find_notebook_by_name(workspace_id: str, notebook_name: str) -> Optional[Dict[str, Any]]:
-        """
-        Find a notebook by name in the specified workspace.
-        
-        Args:
-            workspace_id: The Fabric workspace ID
-            notebook_name: The name of the notebook to find
-            
-        Returns:
-            Dictionary containing notebook item info if found, None otherwise
-        """
         fc = FabricClientCore()
         
         # List all items in the workspace
@@ -184,16 +125,6 @@ class FabricAPI:
     
     @staticmethod
     def get_notebook_by_id(workspace_id: str, notebook_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Get a notebook by ID in the specified workspace.
-        
-        Args:
-            workspace_id: The Fabric workspace ID
-            notebook_id: The ID of the notebook to get
-            
-        Returns:
-            Dictionary containing notebook item info if found, None otherwise
-        """
         fc = FabricClientCore()
         
         try:
@@ -214,17 +145,6 @@ class FabricAPI:
     
     @staticmethod
     def update_notebook_definition(workspace_id: str, notebook_id: str, fabric_python_content: str) -> bool:
-        """
-        Update an existing notebook's content with Fabric Python format.
-        
-        Args:
-            workspace_id: The Fabric workspace ID
-            notebook_id: The ID of the notebook to update
-            fabric_python_content: The Fabric Python format content as string
-            
-        Returns:
-            True if update successful, False otherwise
-        """
         fc = FabricClientCore()
         
         try:
@@ -257,20 +177,6 @@ class FabricAPI:
     
     @staticmethod
     def update_notebook_from_fabric_python_file(workspace_id: str, notebook_id: str, fabric_python_file_path: str) -> bool:
-        """
-        Update an existing notebook from a Fabric Python format file.
-        
-        Args:
-            workspace_id: The Fabric workspace ID
-            notebook_id: The ID of the notebook to update
-            fabric_python_file_path: Path to the Fabric Python format file
-            
-        Returns:
-            True if update successful, False otherwise
-            
-        Raises:
-            FileNotFoundError: If Fabric Python file doesn't exist
-        """
         fabric_path = Path(fabric_python_file_path)
         if not fabric_path.exists():
             raise FileNotFoundError(f"Fabric Python file not found: {fabric_path}")
@@ -287,16 +193,6 @@ class FabricAPI:
     
     @staticmethod
     def run_notebook_by_id(workspace_id: str, notebook_id: str) -> Dict[str, Any]:
-        """
-        Execute a notebook by ID and monitor until completion with real-time status updates.
-        
-        Args:
-            workspace_id: The Fabric workspace ID
-            notebook_id: The ID of the notebook to run
-            
-        Returns:
-            Dictionary containing execution results
-        """
         import time
         
         fc = FabricClientCore()
@@ -363,16 +259,6 @@ class FabricAPI:
     
     @staticmethod
     def run_notebook_by_name(workspace_id: str, notebook_name: str) -> Dict[str, Any]:
-        """
-        Execute a notebook by name and monitor until completion with real-time status updates.
-        
-        Args:
-            workspace_id: The Fabric workspace ID
-            notebook_name: The display name of the notebook to run
-            
-        Returns:
-            Dictionary containing execution results
-        """
         # Find the notebook first
         notebook_info = FabricAPI.find_notebook_by_name(workspace_id, notebook_name)
         if not notebook_info:
@@ -448,15 +334,6 @@ class FabricAPI:
     
     @staticmethod
     def list_data_agents_in_workspace(workspace_id: str) -> list:
-        """
-        List all data agents (AI skills) in a workspace.
-        
-        Args:
-            workspace_id: The Fabric workspace ID
-            
-        Returns:
-            List of data agent items
-        """
         fc = FabricClientCore()
         
         try:
@@ -483,15 +360,6 @@ class FabricAPI:
     
     @staticmethod
     def validate_workspace_id(workspace_id: str) -> bool:
-        """
-        Validate that a workspace ID is properly formatted.
-        
-        Args:
-            workspace_id: The workspace ID to validate
-            
-        Returns:
-            True if valid format, False otherwise
-        """
         if not workspace_id or not isinstance(workspace_id, str):
             return False
         
@@ -500,3 +368,336 @@ class FabricAPI:
             return True
         
         return False
+
+    @staticmethod
+    def _get_bearer_token() -> str:
+        try:
+            result = subprocess.run(
+                "az account get-access-token --resource https://api.fabric.microsoft.com",
+                capture_output=True,
+                text=True,
+                check=True,
+                shell=True
+            )
+            token_data = json.loads(result.stdout)
+            return token_data["accessToken"]
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Failed to get Azure token. Make sure you're logged in with 'az login'. Error: {e.stderr}")
+        except (json.JSONDecodeError, KeyError) as e:
+            raise RuntimeError(f"Failed to parse token response: {e}")
+        except FileNotFoundError:
+            raise RuntimeError("Azure CLI not found. Please install Azure CLI and run 'az login'")
+
+    @staticmethod
+    def _request_notebook_download(workspace_id: str, notebook_id: str, access_token: str, 
+                                   as_ipynb: bool = True, verify_ssl: bool = False) -> Dict[str, Any]:
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        url = f"https://api.fabric.microsoft.com/v1/workspaces/{workspace_id}/notebooks/{notebook_id}/getDefinition"
+        if as_ipynb:
+            url += "?format=ipynb"
+        
+        try:
+            resp = requests.post(url, headers=headers, verify=verify_ssl)
+            
+            if resp.status_code == 202:
+                location = resp.headers.get("Location")
+                if not location:
+                    return {
+                        "success": False,
+                        "status_code": 202,
+                        "error": "202 response received but no Location header found"
+                    }
+                return {
+                    "success": True,
+                    "location": location,
+                    "status_code": 202
+                }
+            else:
+                try:
+                    error_body = resp.json()
+                    error_msg = error_body.get("message", resp.text)
+                except:
+                    error_msg = resp.text
+                return {
+                    "success": False,
+                    "status_code": resp.status_code,
+                    "error": f"HTTP {resp.status_code}: {error_msg}"
+                }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "status_code": None,
+                "error": f"Request failed: {str(e)}"
+            }
+
+    @staticmethod
+    def _check_download_status(location_url: str, access_token: str, verify_ssl: bool = False) -> Dict[str, Any]:
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        try:
+            resp = requests.get(location_url, headers=headers, verify=verify_ssl)
+            
+            if resp.status_code == 200:
+                data = resp.json()
+                status = data.get("status", "Unknown")
+                percent = data.get("percentComplete", 0)
+                
+                if status == "Failed":
+                    error_info = data.get("error", "Unknown error")
+                    return {
+                        "success": True,
+                        "status": status,
+                        "percent_complete": percent,
+                        "error": f"Operation failed: {error_info}"
+                    }
+                
+                return {
+                    "success": True,
+                    "status": status,
+                    "percent_complete": percent
+                }
+            elif resp.status_code == 202:
+                return {
+                    "success": True,
+                    "status": "InProgress",
+                    "percent_complete": 0
+                }
+            else:
+                return {
+                    "success": False,
+                    "status": "Error",
+                    "error": f"Unexpected HTTP {resp.status_code}: {resp.text}"
+                }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "status": "Error",
+                "error": f"Request failed: {str(e)}"
+            }
+
+    @staticmethod
+    def _get_download_result(location_url: str, access_token: str, verify_ssl: bool = False) -> Dict[str, Any]:
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        result_url = location_url.rstrip('/') + '/result'
+        
+        try:
+            resp = requests.get(result_url, headers=headers, verify=verify_ssl)
+            
+            if resp.status_code == 200:
+                data = resp.json()
+                definition = data.get("definition", {})
+                parts = definition.get("parts", [])
+                
+                if not parts:
+                    return {
+                        "success": False,
+                        "error": "No parts found in response"
+                    }
+                
+                return {
+                    "success": True,
+                    "parts": parts
+                }
+            else:
+                try:
+                    error_body = resp.json()
+                    error_msg = error_body.get("message", resp.text)
+                except:
+                    error_msg = resp.text
+                
+                return {
+                    "success": False,
+                    "error": f"HTTP {resp.status_code}: {error_msg}"
+                }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "error": f"Request failed: {str(e)}"
+            }
+
+    @staticmethod
+    def download_notebook_by_id(workspace_id: str, notebook_id: str, data_agent_name: Optional[str] = None,
+                               output_dir: str = "./downloaded_notebooks", timeout: int = 300, 
+                               poll_interval: int = 5, as_ipynb: bool = True, verify_ssl: bool = False) -> Dict[str, Any]:
+        from dad_fw.core.framework_utils import FrameworkUtils
+        
+        start_time = time.time()
+        
+        # Step 1: Get bearer token
+        try:
+            access_token = FabricAPI._get_bearer_token()
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to get token: {str(e)}",
+                "elapsed_time": time.time() - start_time
+            }
+        
+        # Step 2: Request notebook download
+        request_result = FabricAPI._request_notebook_download(
+            workspace_id, notebook_id, access_token, as_ipynb, verify_ssl
+        )
+        
+        if not request_result["success"]:
+            return {
+                "success": False,
+                "error": request_result.get("error", "Failed to request notebook"),
+                "elapsed_time": time.time() - start_time
+            }
+        
+        location_url = request_result["location"]
+        
+        # Step 3: Poll for completion
+        poll_start = time.time()
+        first_check = True
+        
+        while True:
+            elapsed = time.time() - poll_start
+            
+            if elapsed > timeout:
+                return {
+                    "success": False,
+                    "error": f"Operation timed out after {timeout} seconds",
+                    "elapsed_time": time.time() - start_time
+                }
+            
+            if not first_check:
+                time.sleep(poll_interval)
+            first_check = False
+            
+            status_result = FabricAPI._check_download_status(location_url, access_token, verify_ssl)
+            
+            if not status_result["success"]:
+                return {
+                    "success": False,
+                    "error": status_result.get("error", "Failed to check status"),
+                    "elapsed_time": time.time() - start_time
+                }
+            
+            status = status_result["status"]
+            
+            if status == "Succeeded":
+                break
+            elif status == "Failed":
+                return {
+                    "success": False,
+                    "error": status_result.get("error", "Operation failed"),
+                    "elapsed_time": time.time() - start_time
+                }
+        
+        # Step 4: Get the response
+        response_result = FabricAPI._get_download_result(location_url, access_token, verify_ssl)
+        
+        if not response_result["success"]:
+            return {
+                "success": False,
+                "error": response_result.get("error", "Failed to get response"),
+                "elapsed_time": time.time() - start_time
+            }
+        
+        parts = response_result["parts"]
+        
+        # Step 5: Decode and write files
+        # Find the .ipynb file
+        ipynb_part = None
+        for part in parts:
+            if part.get("path", "").endswith(".ipynb"):
+                ipynb_part = part
+                break
+        
+        if not ipynb_part:
+            return {
+                "success": False,
+                "error": "No .ipynb file found in response",
+                "elapsed_time": time.time() - start_time
+            }
+        
+        # Decode the notebook content
+        try:
+            payload = ipynb_part.get("payload", "")
+            decoded_bytes = base64.b64decode(payload)
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to decode notebook: {str(e)}",
+                "elapsed_time": time.time() - start_time
+            }
+        
+        # Determine where to write the file
+        if data_agent_name:
+            # Use framework to find agent and replace its notebook
+            try:
+                agent = FrameworkUtils.get_agent(data_agent_name, Path.cwd())
+                if not agent:
+                    return {
+                        "success": False,
+                        "error": f"Agent '{data_agent_name}' not found in workspace",
+                        "elapsed_time": time.time() - start_time
+                    }
+                
+                notebook_file = agent.get_notebook_file()
+                notebook_file.write_bytes(decoded_bytes)
+                written_files = [str(notebook_file)]
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": f"Failed to write to agent notebook: {str(e)}",
+                    "elapsed_time": time.time() - start_time
+                }
+        else:
+            # Write to output directory
+            try:
+                output_path = Path(output_dir)
+                output_path.mkdir(parents=True, exist_ok=True)
+                file_path = output_path / ipynb_part.get("path", "notebook.ipynb")
+                file_path.write_bytes(decoded_bytes)
+                written_files = [str(file_path)]
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": f"Failed to write file: {str(e)}",
+                    "elapsed_time": time.time() - start_time
+                }
+        
+        elapsed_total = time.time() - start_time
+        return {
+            "success": True,
+            "written_files": written_files,
+            "elapsed_time": elapsed_total
+        }
+
+    @staticmethod
+    def download_notebook_by_name(workspace_id: str, notebook_name: str, data_agent_name: Optional[str] = None,
+                                 output_dir: str = "./downloaded_notebooks", timeout: int = 300,
+                                 poll_interval: int = 5, as_ipynb: bool = True, verify_ssl: bool = False) -> Dict[str, Any]:
+        # Find the notebook by name to get its ID
+        notebook_info = FabricAPI.find_notebook_by_name(workspace_id, notebook_name)
+        
+        if not notebook_info:
+            return {
+                'success': False,
+                'error': f'Notebook "{notebook_name}" not found in workspace {workspace_id}'
+            }
+        
+        # Download using ID
+        return FabricAPI.download_notebook_by_id(
+            workspace_id=workspace_id,
+            notebook_id=notebook_info['id'],
+            data_agent_name=data_agent_name,
+            output_dir=output_dir,
+            timeout=timeout,
+            poll_interval=poll_interval,
+            as_ipynb=as_ipynb,
+            verify_ssl=verify_ssl
+        )

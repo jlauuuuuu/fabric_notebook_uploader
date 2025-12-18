@@ -321,15 +321,12 @@ datasource.get_configuration()["additional_instructions"]
 json_key_pairs_dict = {
     "List all projects.": "SELECT project_id, project_name, start_date, end_date FROM projects;",
     "Show all clients and their industries.": "SELECT client_name, industry FROM clients;",
-    "Which employees are project managers?": "SELECT name, department FROM employees WHERE role = 'Project Manager';",
     "List all projects along with their client names.": "SELECT p.project_name, c.client_name FROM projects p JOIN clients c ON p.client_id = c.client_id;",
     "Show all projects managed by 'Ben Li'.": "SELECT p.project_name, c.client_name, p.start_date, p.end_date FROM projects p JOIN employees e ON p.project_manager_id = e.employee_id JOIN clients c ON p.client_id = c.client_id WHERE e.name = 'Ben Li';",
     "List all tasks for the project 'Bridge Strength Assessment'.": "SELECT t.task_name, e.name AS assigned_to, t.status FROM project_tasks t JOIN projects p ON t.project_id = p.project_id JOIN employees e ON t.assigned_to = e.employee_id WHERE p.project_name = 'Bridge Strength Assessment';",
     "Show total invoiced amount per project.": "SELECT p.project_name, SUM(i.amount) AS total_invoiced FROM projects p JOIN invoices i ON p.project_id = i.project_id GROUP BY p.project_name;",
     "Which clients have the highest total billed amount?": "SELECT c.client_name, SUM(i.amount) AS total_billed FROM clients c JOIN projects p ON c.client_id = p.client_id JOIN invoices i ON p.project_id = i.project_id GROUP BY c.client_name ORDER BY total_billed DESC;",
     "How many tasks are still in progress for each project?": "SELECT p.project_name, COUNT(*) AS tasks_in_progress FROM projects p JOIN project_tasks t ON p.project_id = t.project_id WHERE t.status = 'In Progress' GROUP BY p.project_name;",
-    "List all pending invoices with project manager and client details.": "SELECT i.invoice_id, i.amount, p.project_name, e.name AS project_manager, c.client_name FROM invoices i JOIN projects p ON i.project_id = p.project_id JOIN employees e ON p.project_manager_id = e.employee_id JOIN clients c ON p.client_id = c.client_id WHERE i.status = 'Pending';",
-    "Which projects are overdue (end date before today)?": "SELECT p.project_name, c.client_name, p.end_date FROM projects p JOIN clients c ON p.client_id = c.client_id WHERE p.end_date < DATE('now');",
     "For each project manager, show the number of projects they manage and the total invoice amount.": "SELECT e.name AS project_manager, COUNT(DISTINCT p.project_id) AS num_projects, SUM(i.amount) AS total_invoiced FROM employees e JOIN projects p ON e.employee_id = p.project_manager_id JOIN invoices i ON p.project_id = i.project_id GROUP BY e.name;",
     "Show all tasks completed by employees in the Civil Engineering department.": "SELECT t.task_name, p.project_name, e.name AS engineer_name FROM project_tasks t JOIN projects p ON t.project_id = p.project_id JOIN employees e ON t.assigned_to = e.employee_id WHERE e.department = 'Civil Engineering' AND t.status = 'Completed';",
     "Find clients with projects that have more than 2 pending invoices.": "SELECT c.client_name, COUNT(i.invoice_id) AS pending_invoices FROM clients c JOIN projects p ON c.client_id = p.client_id JOIN invoices i ON p.project_id = i.project_id WHERE i.status = 'Pending' GROUP BY c.client_name HAVING COUNT(i.invoice_id) > 2;"
@@ -364,6 +361,103 @@ datasource.get_fewshots()
 
 # Publishing Agent
 data_agent.publish()
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# # Evaluation
+
+# CELL ********************
+
+evaluation_pairs = [
+    # Basic Queries
+    {"question": "How many clients do we have?", "expected_answer": "5 clients"},
+    {"question": "How many employees work in the Civil Engineering department?", "expected_answer": "3 employees"},
+    {"question": "What is VicRoads' contact email?", "expected_answer": "contact@vicroads.gov.au"},
+    
+    # Project Queries
+    {"question": "Which projects are managed by Alice Nguyen?", "expected_answer": "Bridge Strength Assessment, Highway Upgrade Program, Harbour Structural Review"},
+    {"question": "What projects is VicRoads the client for?", "expected_answer": "4 projects"},
+    {"question": "When does the Wind Farm Feasibility Study end?", "expected_answer": "2024-09-15"},
+    
+    # Financial Queries
+    {"question": "What is the total value of all invoices?", "expected_answer": "$204,000"},
+    {"question": "How many invoices are currently pending?", "expected_answer": "6 invoices"},
+    {"question": "What is the invoice amount for the Bridge Strength Assessment project?", "expected_answer": "$15,000"},
+    {"question": "What is the total value of paid invoices?", "expected_answer": "$57,500"},
+    
+    # Task Queries
+    {"question": "How many tasks are currently in progress?", "expected_answer": "6 tasks"},
+    {"question": "What tasks is Emma Davis assigned to?", "expected_answer": "5 tasks"},
+    {"question": "Which tasks are part of the Coastal Erosion Mitigation project?", "expected_answer": "Coastal Survey, Erosion Model Simulation"},
+    
+    # Complex Multi-Table Queries
+    {"question": "What is the total invoice value for all VicRoads projects?", "expected_answer": "$83,500"},
+    {"question": "Which project manager has the highest total invoice value across their projects?", "expected_answer": "Alice Nguyen"},
+    {"question": "How many projects is Ben Li managing and what is their total value?", "expected_answer": "3 projects, $61,000"},
+    {"question": "Which client has the most projects with us?", "expected_answer": "VicRoads with 4 projects"},
+    {"question": "What percentage of our tasks are currently in progress?", "expected_answer": "40%"},
+    
+    # Department & Resource Queries
+    {"question": "Which employee is assigned to the most tasks?", "expected_answer": "Emma Davis with 5 tasks"},
+    {"question": "How many projects do we have in the Transportation industry?", "expected_answer": "5 projects"},
+    {"question": "What is the contact email for the client of the Smart Water Network Design project?", "expected_answer": "hello@aquasmart.com"},
+    
+    # Time-Based Queries
+    {"question": "Which projects are scheduled to end in 2025?", "expected_answer": "3 projects"},
+    {"question": "How many invoices are due in January 2025?", "expected_answer": "1 invoice"},
+]
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+import pandas as pd
+from fabric.dataagent.evaluation import evaluate_data_agent
+
+# Run evaluation
+eval_df = pd.DataFrame(evaluation_pairs)
+
+evaluation_id = evaluate_data_agent(eval_df, data_agent_name, workspace_name="eda_di_prj_tst")
+print(f"Unique Id for the current evaluation run: {evaluation_id}")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+
+# Import the function to retrieve detailed evaluation results
+from fabric.dataagent.evaluation import get_evaluation_details
+
+# Whether to return all evaluation results (True) or only failed ones (False, default)
+get_all_rows = True
+
+# Whether to print a summary of the evaluation results to the console (optional)
+verbose = True
+
+# Fetch detailed evaluation results as a DataFrame
+# This includes question, expected answer, actual answer, evaluation status, and diagnostic info
+eval_details_df = get_evaluation_details(
+    evaluation_id,
+    get_all_rows=get_all_rows,
+    verbose=verbose
+)
 
 # METADATA ********************
 
