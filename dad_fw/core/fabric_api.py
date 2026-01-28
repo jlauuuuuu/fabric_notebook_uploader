@@ -611,10 +611,12 @@ class FabricAPI:
         # Step 5: Decode and write files
         # Find the .ipynb file
         ipynb_part = None
+        platform_part = None
         for part in parts:
             if part.get("path", "").endswith(".ipynb"):
                 ipynb_part = part
-                break
+            elif part.get("path") == ".platform":
+                platform_part = part
         
         if not ipynb_part:
             return {
@@ -663,6 +665,14 @@ class FabricAPI:
                 file_path = output_path / ipynb_part.get("path", "notebook.ipynb")
                 file_path.write_bytes(decoded_bytes)
                 written_files = [str(file_path)]
+                
+                # Decode and save .platform file for debugging
+                if platform_part:
+                    platform_payload = platform_part.get("payload", "")
+                    platform_decoded = base64.b64decode(platform_payload)
+                    platform_file = output_path / ".platform"
+                    platform_file.write_bytes(platform_decoded)
+                    written_files.append(str(platform_file))
             except Exception as e:
                 return {
                     "success": False,

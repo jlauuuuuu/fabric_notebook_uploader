@@ -108,7 +108,6 @@ You can download the .csv files from the Sample Data Folder and upload to a lake
 4. Go to Lakehouse Files and turn them into Tables
 4. Done! You can now run the default template notebook yay
 
-
 ## License
 
 This project is licensed under the MIT License
